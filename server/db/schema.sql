@@ -6,7 +6,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
     grad_year INT NOT NULL,
-    role user_role NOT NULL,
+    role user_role NOT NULL DEFAULT 'member',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -37,7 +37,7 @@ CREATE TABLE user_groups (
     group_id INT NOT NULL
         REFERENCES groups(id)
         ON DELETE CASCADE,
-    group_role user_group_role NOT NULL,
+    group_role user_group_role NOT NULL DEFAULT 'member',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, group_id)
 );
