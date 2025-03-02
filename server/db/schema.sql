@@ -2,7 +2,7 @@ CREATE TYPE user_role AS ENUM ('admin', 'member');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    email VARCHAR(100) UNIQUE NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
     grad_year INT NOT NULL,
