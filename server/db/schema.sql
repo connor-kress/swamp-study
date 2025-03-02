@@ -10,6 +10,19 @@ CREATE TABLE users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE user_sessions (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+    access_token_hash VARCHAR(255) NOT NULL UNIQUE,
+    refresh_token_hash VARCHAR(255) NOT NULL UNIQUE,
+    access_expires TIMESTAMPTZ NOT NULL,
+    refresh_expires TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE courses (
     id SERIAL PRIMARY KEY,
     code CHAR(10) NOT NULL,
@@ -18,13 +31,17 @@ CREATE TABLE courses (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TYPE course_term AS ENUM (
+    'fall', 'spring', 'summer-a', 'summer-b', 'summer-c'
+);
+
 CREATE TABLE groups (
     id SERIAL PRIMARY KEY,
     course_id INT NOT NULL
         REFERENCES courses(id)
         ON DELETE CASCADE,
     year INT NOT NULL,
-    term CHAR(8) NOT NULL, -- fall, spring, summer-a, etc.
+    term course_term NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
