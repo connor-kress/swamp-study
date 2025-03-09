@@ -67,3 +67,23 @@ Next, bootstrap the database by executing the `schema.sql` file.
 ```sql
 \ir ./server/db/schema.sql
 ```
+
+## Configuring Server
+
+### PostgreSQL server config
+
+In the server directory, create a copy of `.env.example` called `.env` (do not
+delete `.env.example`). Next, fill in your Postgres credentials and change any
+other variables if applicable.
+
+```dotenv
+DB_USER=<your-user>
+DB_PASSWORD=<your-password>
+DB_NAME=swampstudy
+DB_HOST=localhost # running on local machine
+DB_PORT=5432 # default Postgres port
+```
+
+**Note:** This file contains secrets and should NEVER be shared. Ensure that it
+is in the `.gitignore` file before pushing to any public repositories (like
+GitHub).
