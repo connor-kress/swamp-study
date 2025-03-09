@@ -12,7 +12,8 @@
   "license": "MIT",
   "description": "",
   "dependencies": {
-    "fastify": "^5.2.1"
+    "fastify": "^5.2.1",
+    "fastify-postgres": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
