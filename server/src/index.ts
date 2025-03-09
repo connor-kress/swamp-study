@@ -1,16 +1,12 @@
 import fastify from "fastify"
 import fastifyPostgres from "fastify-postgres"
 
+import config from "./config"
+
 const server = fastify();
 
-const user = "...";
-const password = "...";
-const database = "swampstudy";
-const host = "localhost";
-const port = "5432";
-
 server.register(fastifyPostgres, {
-  connectionString: `postgres://${user}:${password}@${host}:${port}/${database}`,
+  connectionString: `postgres://${config.user}:${config.password}@${config.host}:${config.port}/${config.database}`,
 });
 
 server.get("/now", async (_, reply) => {
