@@ -2,6 +2,7 @@ import fastify from "fastify"
 import fastifyPostgres from "fastify-postgres"
 
 import config from "./config"
+import { getNow, getUserById } from "./db/queries";
 
 const server = fastify();
 
@@ -10,20 +11,31 @@ server.register(fastifyPostgres, {
 });
 
 server.get("/now", async (_, reply) => {
-  const client = await server.pg.connect();
-
   try {
-    const { rows } = await client.query("SELECT NOW()");
-    return rows;
+    const nowRows = await getNow(server);
+    return nowRows;
   } catch (error) {
     reply.code(500);
     return { error: "Database error occurred" };
-  } finally {
-    client.release();
   }
 });
 
-server.get("/ping", async (request, reply) => {
+server.get("/user/:id", async (request, reply) => {
+  const { id } = request.params as { id: string };
+  try {
+    const user = await getUserById(server, Number(id));
+    if (!user) {
+      reply.code(404);
+      return { error: "User not found" };
+    }
+    return user;
+  } catch (error) {
+    reply.code(500);
+    return { error: "Database error occurred" };
+  }
+});
+
+server.get("/ping", async (_request, _reply) => {
   return "pong";
 });
 
