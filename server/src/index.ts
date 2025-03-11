@@ -1,10 +1,11 @@
 import fastify from "fastify"
 import fastifyPostgres from "fastify-postgres"
+import { z } from "zod";
 
 import config from "./config"
 import { createUser, deleteUser, getNow, getPasswordHashByEmail, getUserById, NewUserInput } from "./db/queries";
-import { CreateUserInput, CreateUserInputSchema } from "./types";
-import { z } from "zod";
+import { CreateUserInputSchema } from "./types";
+import { hashPassword, verifyPassword } from "./util/crypt";
 
 const server = fastify();
 
@@ -48,7 +49,7 @@ server.post("/users", async (request, reply) => {
   const userInput: NewUserInput = {
     email, name, grad_year,
     role: role ? role : "member",
-    password_hash: password, // TODO: hashing
+    password_hash: await hashPassword(password),
   };
 
   try {
@@ -68,13 +69,13 @@ const deleteUserParamsSchema = z.object({
 
 server.delete("/user/:id", async (request, reply) => {
   // Validate and parse the route parameters
-  const parseResult = deleteUserParamsSchema.safeParse(request.params);
-  if (!parseResult.success) {
+  const parsed = deleteUserParamsSchema.safeParse(request.params);
+  if (!parsed.success) {
     reply.status(400);
-    return { error: parseResult.error.flatten() };
+    return { error: parsed.error.flatten() };
   }
 
-  const { id } = parseResult.data;
+  const { id } = parsed.data;
 
   try {
     const success = await deleteUser(server, id);
@@ -91,21 +92,26 @@ server.delete("/user/:id", async (request, reply) => {
   }
 });
 
-type LoginParams = { email: string, password: string };
+const loginParamsSchema = z.object({ email: z.string(), password: z.string() });
 
 server.get("/auth/login", async (request, reply) => {
-  const { email, password } = request.query as LoginParams;
-  console.log(email);
+  const parsed = loginParamsSchema.safeParse(request.query);
+  if (!parsed.success) {
+    reply.status(400);
+    return { error: parsed.error.flatten() };
+  }
+  const { email, password } = parsed.data;
   try {
     const passwordHash = await getPasswordHashByEmail(server, email);
     if (!passwordHash) {
       reply.code(404);
       return { error: "User not found" };
     }
-    // Not actually a hash for testing
-    if (password === passwordHash) {
+    if (await verifyPassword(password, passwordHash)) {
+      console.log(`Login successful: ${email}`);
       return {"status": "success"};
     } else {
+      console.log(`Login failed: ${email}`);
       return {"status": "failure"};
     }
   } catch (error) {
