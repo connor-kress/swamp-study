@@ -2,7 +2,7 @@ import fastify from "fastify"
 import fastifyPostgres from "fastify-postgres"
 
 import config from "./config"
-import { getNow, getUserById } from "./db/queries";
+import { getNow, getPasswordHashByEmail, getUserById } from "./db/queries";
 
 const server = fastify();
 
@@ -31,6 +31,31 @@ server.get("/user/:id", async (request, reply) => {
     return user;
   } catch (error) {
     reply.code(500);
+    console.log(error);
+    return { error: "Database error occurred" };
+  }
+});
+
+type LoginParams = { email: string, password: string };
+
+server.get("/auth/login", async (request, reply) => {
+  const { email, password } = request.query as LoginParams;
+  console.log(email);
+  try {
+    const passwordHash = await getPasswordHashByEmail(server, email);
+    if (!passwordHash) {
+      reply.code(404);
+      return { error: "User not found" };
+    }
+    // Not actually a hash for testing
+    if (password === passwordHash) {
+      return {"status": "success"};
+    } else {
+      return {"status": "failure"};
+    }
+  } catch (error) {
+    reply.code(500);
+    console.log(error);
     return { error: "Database error occurred" };
   }
 });
