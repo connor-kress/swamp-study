@@ -2,7 +2,9 @@ import fastify from "fastify"
 import fastifyPostgres from "fastify-postgres"
 
 import config from "./config"
-import { getNow, getPasswordHashByEmail, getUserById } from "./db/queries";
+import { createUser, deleteUser, getNow, getPasswordHashByEmail, getUserById, NewUserInput } from "./db/queries";
+import { CreateUserInput, CreateUserInputSchema } from "./types";
+import { z } from "zod";
 
 const server = fastify();
 
@@ -32,6 +34,59 @@ server.get("/user/:id", async (request, reply) => {
   } catch (error) {
     reply.code(500);
     console.log(error);
+    return { error: "Database error occurred" };
+  }
+});
+
+server.post("/users", async (request, reply) => {
+  const parsed = CreateUserInputSchema.safeParse(request.body);
+  if (!parsed.success) {
+    reply.status(400);
+    return { error: parsed.error.flatten() };
+  }
+  const { email, password, name, grad_year, role } = parsed.data;
+  const userInput: NewUserInput = {
+    email, name, grad_year,
+    role: role ? role : "member",
+    password_hash: password, // TODO: hashing
+  };
+
+  try {
+    const newUser = await createUser(server, userInput);
+    reply.status(201);
+    return newUser;
+  } catch (error) {
+    console.error("Error creating user:", error);
+    reply.status(500);
+    return { error: "Database error occurred" };
+  }
+});
+
+const deleteUserParamsSchema = z.object({
+  id: z.string().transform((val) => parseInt(val, 10)),
+});
+
+server.delete("/user/:id", async (request, reply) => {
+  // Validate and parse the route parameters
+  const parseResult = deleteUserParamsSchema.safeParse(request.params);
+  if (!parseResult.success) {
+    reply.status(400);
+    return { error: parseResult.error.flatten() };
+  }
+
+  const { id } = parseResult.data;
+
+  try {
+    const success = await deleteUser(server, id);
+    if (!success) {
+      reply.status(404);
+      return { error: "User not found" };
+    }
+    reply.status(200);
+    return { status: "success", message: `User ${id} deleted` };
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    reply.status(500);
     return { error: "Database error occurred" };
   }
 });
