@@ -20,8 +20,8 @@ export const CreateUserInputSchema = z.object({
 export const UserSessionSchema = z.object({
   id: z.number(),
   user_id: z.number(),
-  access_token_hash: z.string(),
-  refresh_token_hash: z.string(),
+  access_token: z.string(),
+  refresh_token: z.string(),
   access_expires: z.date(),
   refresh_expires: z.date(),
   created_at: z.date(),

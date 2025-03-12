@@ -1,7 +1,12 @@
 import { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 
-import { createUser, deleteUser, getUserById, NewUserInput } from "../db/queries";
+import {
+  createUser,
+  deleteUser,
+  getUserById,
+  NewUserInput,
+} from "../db/queries";
 import { CreateUserInputSchema } from "../types";
 import { hashPassword } from "../util/crypt";
 

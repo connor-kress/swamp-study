@@ -22,6 +22,26 @@ export async function getUserById(
   }
 }
 
+export async function getUserByEmail(
+  server: FastifyInstance,
+  email: string,
+): Promise<User | null> {
+  const client = await server.pg.connect();
+  try {
+    const { rows } = await client.query(`
+      SELECT id, email, name, grad_year, role, created_at
+      FROM users
+      WHERE email = $1`, [email],
+    );
+    if (rows.length === 0) return null;
+    return UserSchema.parse(rows[0]);
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export type NewUserInput = Omit<
   User, "id" | "created_at"
 > & { password_hash: string };
@@ -75,14 +95,13 @@ export async function createUserSession(
   try {
     const { rows } = await client.query(`
       INSERT INTO user_sessions
-      (user_id, access_token_hash, refresh_token_hash,
-       access_expires, refresh_expires)
+      (user_id, access_token, refresh_token, access_expires, refresh_expires)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING *`,
       [
         data.user_id,
-        data.access_token_hash,
-        data.refresh_token_hash,
+        data.access_token,
+        data.refresh_token,
         data.access_expires,
         data.refresh_expires,
       ],
@@ -131,7 +150,7 @@ export async function deleteUserSession(
   }
 }
 
-export async function getUserFromSession(
+export async function getUserFromAccessToken(
   server: FastifyInstance,
   accessTokenHash: string
 ): Promise<User | null> {
@@ -143,7 +162,7 @@ export async function getUserFromSession(
         u.created_at, s.access_expires
       FROM user_sessions s
       JOIN users u ON s.user_id = u.id
-      WHERE s.access_token_hash = $1
+      WHERE s.access_token = $1
         AND s.access_expires > CURRENT_TIMESTAMP`,
       [accessTokenHash],
     );

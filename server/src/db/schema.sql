@@ -15,8 +15,8 @@ CREATE TABLE user_sessions (
     user_id INT NOT NULL
         REFERENCES users(id)
         ON DELETE CASCADE,
-    access_token_hash VARCHAR(255) NOT NULL UNIQUE,
-    refresh_token_hash VARCHAR(255) NOT NULL UNIQUE,
+    access_token VARCHAR(255) NOT NULL UNIQUE,
+    refresh_token VARCHAR(255) NOT NULL UNIQUE,
     access_expires TIMESTAMPTZ NOT NULL,
     refresh_expires TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
