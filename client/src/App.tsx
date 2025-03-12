@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router'
 
-const Home = () => {
+function Home() {
   return (
     <div style={{ textAlign: 'center', marginTop: '100px' }}>
       <h1>Welcome to SwampStudy</h1>
@@ -22,12 +22,12 @@ const Home = () => {
 };
 
 // Login Page (Placeholder)
-const Login = () => {
+function Login() {
   return <div></div>;
 };
 
 // Signup Page (Placeholder)
-const Signup = () => {
+function Signup () {
   return <div></div>;
 };
 
