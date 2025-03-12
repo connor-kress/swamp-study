@@ -1,8 +1,5 @@
-// App.js
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router'
 
-// Home Component
 const Home = () => {
   return (
     <div style={{ textAlign: 'center', marginTop: '100px' }}>
@@ -26,16 +23,15 @@ const Home = () => {
 
 // Login Page (Placeholder)
 const Login = () => {
-  return <div></div>; // Empty component as requested
+  return <div></div>;
 };
 
 // Signup Page (Placeholder)
 const Signup = () => {
-  return <div></div>; // Empty component as requested
+  return <div></div>;
 };
 
-// Main App Component
-function App() {
+export default function App() {
   return (
     <Router>
       <Routes>
@@ -46,5 +42,3 @@ function App() {
     </Router>
   );
 }
-
-export default App;
