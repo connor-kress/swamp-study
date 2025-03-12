@@ -2,20 +2,6 @@ import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { UserSchema, User, UserSession, UserSessionSchema } from "../types";
 
-export async function getNow(
-  server: FastifyInstance
-): Promise<{ now: string }> {
-  const client = await server.pg.connect();
-  try {
-    const { rows } = await client.query("SELECT NOW() as now");
-    return rows[0];
-  } catch (error) {
-    throw error;
-  } finally {
-    client.release();
-  }
-}
-
 export async function getUserById(
   server: FastifyInstance,
   id: number,
@@ -35,7 +21,6 @@ export async function getUserById(
     client.release();
   }
 }
-
 
 export type NewUserInput = Omit<
   User, "id" | "created_at"
