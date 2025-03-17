@@ -1,6 +1,12 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { UserSchema, User, UserSession, UserSessionSchema } from "../types";
+import {
+  UserSchema,
+  User,
+  UserSession,
+  UserSessionSchema,
+  SessionWithUser,
+} from "../types";
 
 export async function getUserById(
   server: FastifyInstance,
@@ -135,7 +141,7 @@ export async function getPasswordHashByEmail(
 
 export async function deleteUserSession(
   server: FastifyInstance,
-  id: number
+  id: number,
 ): Promise<boolean> {
   const client = await server.pg.connect();
   try {
@@ -150,24 +156,28 @@ export async function deleteUserSession(
   }
 }
 
-export async function getUserFromAccessToken(
+export async function getSessionByAccessToken(
   server: FastifyInstance,
-  accessToken: string
-): Promise<User | null> {
+  accessToken: string,
+): Promise<SessionWithUser | null> {
   const client = await server.pg.connect();
   try {
     const { rows } = await client.query(`
       SELECT
-        u.id, u.email, u.name, u.grad_year, u.role,
-        u.created_at, s.access_expires
+        row_to_json(u) AS user,
+        row_to_json(s) AS session
       FROM user_sessions s
       JOIN users u ON s.user_id = u.id
       WHERE s.access_token = $1
-        AND s.access_expires > CURRENT_TIMESTAMP`,
+        AND s.access_expires > CURRENT_TIMESTAMP
+      LIMIT 1`,
       [accessToken],
     );
     if (rows.length === 0) return null;
-    return UserSchema.parse(rows[0]);
+    return {
+      user: UserSchema.parse(rows[0].user),
+      session: UserSessionSchema.parse(rows[0].session),
+    };
   } catch (error) {
     throw error;
   } finally {
@@ -175,43 +185,45 @@ export async function getUserFromAccessToken(
   }
 }
 
-export async function getUserFromRefreshToken(
+export async function getSessionByRefreshToken(
   server: FastifyInstance,
-  refreshToken: string
-): Promise<User | null> {
+  refreshToken: string,
+): Promise<SessionWithUser | null> {
   const client = await server.pg.connect();
   try {
     const { rows } = await client.query(`
       SELECT
-        u.id, u.email, u.name, u.grad_year, u.role,
-        u.created_at, s.access_expires
+        row_to_json(u) AS user,
+        row_to_json(s) AS session
       FROM user_sessions s
       JOIN users u ON s.user_id = u.id
       WHERE s.refresh_token = $1
-        AND s.refresh_expires > CURRENT_TIMESTAMP`,
+        AND s.refresh_expires > CURRENT_TIMESTAMP
+      LIMIT 1`,
       [refreshToken],
     );
     if (rows.length === 0) return null;
-    return UserSchema.parse(rows[0]);
+    return {
+      user: UserSchema.parse(rows[0].user),
+      session: UserSessionSchema.parse(rows[0].session),
+    };
   } catch (error) {
     throw error;
   } finally {
     client.release();
   }
 }
-
-
 
 export async function updateSessionTokens(
   server: FastifyInstance,
   sessionId: number,
   data: {
-    access_token: string;
-    refresh_token: string;
-    access_expires: Date;
-    refresh_expires: Date;
+    accessToken: string;
+    refreshToken: string;
+    accessExpires: Date;
+    refreshExpires: Date;
   },
-): Promise<UserSession> {
+): Promise<UserSession | null> {
   const client = await server.pg.connect();
   try {
     const { rows } = await client.query(`
@@ -224,13 +236,14 @@ export async function updateSessionTokens(
       WHERE id = $5
       RETURNING *`,
       [
-        data.access_token,
-        data.refresh_token,
-        data.access_expires,
-        data.refresh_expires,
+        data.accessToken,
+        data.refreshToken,
+        data.accessExpires,
+        data.refreshExpires,
         sessionId,
       ]
     );
+    if (rows.length === 0) return null;
     return UserSessionSchema.parse(rows[0]);
   } catch (error) {
     throw error;

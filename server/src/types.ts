@@ -31,3 +31,8 @@ export const UserSessionSchema = z.object({
 export type User = z.infer<typeof UserSchema>;
 export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 export type UserSession = z.infer<typeof UserSessionSchema>;
+
+export type SessionWithUser = {
+  user: User,
+  session: UserSession,
+};
