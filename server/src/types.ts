@@ -1,12 +1,18 @@
 import { z } from "zod";
 
+export const DateSchema = z.preprocess((arg) => {
+  if (typeof arg === "string" || arg instanceof Date) {
+    return new Date(arg);
+  }
+}, z.date());
+
 export const UserSchema = z.object({
   id: z.number(),
   email: z.string().email(),
   name: z.string(),
   grad_year: z.number(),
   role: z.enum(["admin", "member"]),
-  created_at: z.date(),
+  created_at: DateSchema,
 });
 
 export const CreateUserInputSchema = z.object({
@@ -22,10 +28,10 @@ export const UserSessionSchema = z.object({
   user_id: z.number(),
   access_token: z.string(),
   refresh_token: z.string(),
-  access_expires: z.date(),
-  refresh_expires: z.date(),
-  created_at: z.date(),
-  updated_at: z.date(),
+  access_expires: DateSchema,
+  refresh_expires: DateSchema,
+  created_at: DateSchema,
+  updated_at: DateSchema,
 });
 
 export type User = z.infer<typeof UserSchema>;
