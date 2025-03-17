@@ -152,7 +152,7 @@ export async function deleteUserSession(
 
 export async function getUserFromAccessToken(
   server: FastifyInstance,
-  accessTokenHash: string
+  accessToken: string
 ): Promise<User | null> {
   const client = await server.pg.connect();
   try {
@@ -164,11 +164,74 @@ export async function getUserFromAccessToken(
       JOIN users u ON s.user_id = u.id
       WHERE s.access_token = $1
         AND s.access_expires > CURRENT_TIMESTAMP`,
-      [accessTokenHash],
+      [accessToken],
     );
     if (rows.length === 0) return null;
-    // If desired, you could also verify the access_expires field from rows[0].
     return UserSchema.parse(rows[0]);
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getUserFromRefreshToken(
+  server: FastifyInstance,
+  refreshToken: string
+): Promise<User | null> {
+  const client = await server.pg.connect();
+  try {
+    const { rows } = await client.query(`
+      SELECT
+        u.id, u.email, u.name, u.grad_year, u.role,
+        u.created_at, s.access_expires
+      FROM user_sessions s
+      JOIN users u ON s.user_id = u.id
+      WHERE s.refresh_token = $1
+        AND s.refresh_expires > CURRENT_TIMESTAMP`,
+      [refreshToken],
+    );
+    if (rows.length === 0) return null;
+    return UserSchema.parse(rows[0]);
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+
+
+export async function updateSessionTokens(
+  server: FastifyInstance,
+  sessionId: number,
+  data: {
+    access_token: string;
+    refresh_token: string;
+    access_expires: Date;
+    refresh_expires: Date;
+  },
+): Promise<UserSession> {
+  const client = await server.pg.connect();
+  try {
+    const { rows } = await client.query(`
+      UPDATE user_sessions
+      SET access_token = $1,
+          refresh_token = $2,
+          access_expires = $3,
+          refresh_expires = $4,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $5
+      RETURNING *`,
+      [
+        data.access_token,
+        data.refresh_token,
+        data.access_expires,
+        data.refresh_expires,
+        sessionId,
+      ]
+    );
+    return UserSessionSchema.parse(rows[0]);
   } catch (error) {
     throw error;
   } finally {
