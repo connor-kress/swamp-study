@@ -22,70 +22,19 @@ function generateToken(size = 32): string {
   return crypto.randomBytes(size).toString("hex");
 }
 
-export async function verifyAndRefreshSession(
+export async function verifyAccessToken(
   server: FastifyInstance,
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<SessionWithUser | null> {
   const accessToken = request.cookies?.accessToken;
-  const refreshToken = request.cookies?.refreshToken;
-
-  if (!accessToken || !refreshToken) {
-    reply.code(401).send({ error: "Authentication tokens missing." });
+  if (!accessToken) {
+    reply.code(401).send({ error: "Access token missing." });
     return null;
   }
-
-  // First, try the access token.
-  let session = await getSessionByAccessToken(server, accessToken);
-  if (session) {
-    return session;  // Access token is valid
-  }
-
-  // Then, try the refresh token
-  session = await getSessionByRefreshToken(server, refreshToken);
+  const session = await getSessionByAccessToken(server, accessToken);
   if (!session) {
-    reply.code(401).send({ error: "Invalid session." });
-    return null;
-  }
-
-  // Generate new tokens for rolling sessions
-  const newAccessToken = generateToken();
-  const newRefreshToken = generateToken();
-  const newAccessExpires = new Date(Date.now() + 15*60*1000); // 15 minutes
-  const newRefreshExpires = new Date(Date.now() + 7*24*60*60*1000); // 7 days
-
-  // Update user session in db
-  const newSession = await updateSessionTokens(server, session.session.id, {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-      accessExpires: newAccessExpires,
-      refreshExpires: newRefreshExpires,
-  });
-  if (!newSession) {
-    reply.code(500).send({ error: "Unable to update user session." });
-    return null;
-  }
-
-  // Set new cookies
-  reply.setCookie("accessToken", newAccessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/",
-    expires: newAccessExpires,
-  });
-  reply.setCookie("refreshToken", newRefreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/",
-    expires: newRefreshExpires,
-  });
-
-  // Check if the new access token works
-  session = await getSessionByAccessToken(server, newAccessToken);
-  if (!session) {
-    reply.code(401).send({ error: "Unable to verify user on refresh." });
+    reply.code(401).send({ error: "Invalid or expired access token." });
     return null;
   }
   return session;
@@ -93,9 +42,61 @@ export async function verifyAndRefreshSession(
 
 const authRoutes: FastifyPluginAsync = async (server) => {
 
-  // GET /auth/verify - Verifies and refreshes a user auth session
+  // POST /auth/refresh - Attempts rolling token refresh with refresh token
+  server.post("/refresh", async (request, reply) => {
+    const refreshToken = request.cookies?.refreshToken;
+    if (!refreshToken) {
+      reply.code(401).send({ error: "Refresh token missing." });
+      return;
+    }
+
+    let session = await getSessionByRefreshToken(server, refreshToken);
+    if (!session) {
+      reply.code(401).send({ error: "Invalid session." });
+      return null;
+    }
+
+    // Generate new tokens for rolling sessions
+    const newAccessToken = generateToken();
+    const newRefreshToken = generateToken();
+    const newAccessExpires = new Date(Date.now() + 15*60*1000); // 15 minutes
+    const newRefreshExpires = new Date(Date.now() + 7*24*60*60*1000); // 7 days
+
+    // Update user session in db
+    const newSession = await updateSessionTokens(server, session.session.id, {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        accessExpires: newAccessExpires,
+        refreshExpires: newRefreshExpires,
+    });
+    if (!newSession) {
+      reply.code(500).send({ error: "Unable to update user session." });
+      return null;
+    }
+    session.session = newSession;
+
+    // Set new cookies
+    reply.setCookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      expires: newAccessExpires,
+    });
+    reply.setCookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      expires: newRefreshExpires,
+    });
+
+    return { status: "success", data: session };
+  });
+
+  // GET /auth/verify - Verifies access token
   server.get("/verify", async (request, reply) => {
-    const session = await verifyAndRefreshSession(server, request, reply);
+    const session = await verifyAccessToken(server, request, reply);
     if (!session) {
       console.log(`Verification failed`);
       return;
