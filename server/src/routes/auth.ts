@@ -93,6 +93,17 @@ export async function verifyAndRefreshSession(
 
 const authRoutes: FastifyPluginAsync = async (server) => {
 
+  // GET /auth/verify - Verifies and refreshes a user auth session
+  server.get("/verify", async (request, reply) => {
+    const session = await verifyAndRefreshSession(server, request, reply);
+    if (!session) {
+      console.log(`Verification failed`);
+      return;
+    }
+    console.log(`Verification successful: ${session.user.email}`);
+    return { session };
+  });
+
   const loginParamsSchema = z.object({
     email: z.string(),
     password: z.string(),
