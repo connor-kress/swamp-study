@@ -1,5 +1,4 @@
 import {
-  FastifyInstance,
   FastifyPluginAsync,
   FastifyReply,
   FastifyRequest,
@@ -37,7 +36,6 @@ function setTokenCookies(reply: FastifyReply, data: TokenData) {
 }
 
 export async function verifyAccessToken(
-  server: FastifyInstance,
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<SessionWithUser | null> {
@@ -46,7 +44,7 @@ export async function verifyAccessToken(
     reply.code(401).send({ error: "Access token missing." });
     return null;
   }
-  const session = await getSessionByAccessToken(server, accessToken);
+  const session = await getSessionByAccessToken(request.server, accessToken);
   if (!session) {
     reply.code(401).send({ error: "Invalid or expired access token." });
     return null;
@@ -93,7 +91,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
   // GET /auth/verify - Verifies access token
   server.get("/verify", async (request, reply) => {
-    const session = await verifyAccessToken(server, request, reply);
+    const session = await verifyAccessToken(request, reply);
     if (!session) {
       console.log(`Verification failed`);
       return;
@@ -150,7 +148,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
   // POST /auth/logout - Logout the current session
   server.post("/logout", async (request, reply) => {
-    const session = await verifyAccessToken(server, request, reply);
+    const session = await verifyAccessToken(request, reply);
     if (!session) {
       console.log("Logout failed");
       return;
@@ -171,7 +169,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
   // POST /auth/logout-all - Logout all sessions for a user
   server.post("/logout-all", async (request, reply) => {
-    const session = await verifyAccessToken(server, request, reply);
+    const session = await verifyAccessToken(request, reply);
     if (!session) {
       console.log("Logout-all failed");
       return;
