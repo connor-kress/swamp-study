@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import {
   createUserSession,
+  deleteUserSession,
   getPasswordHashByEmail,
   getSessionByAccessToken,
   getSessionByRefreshToken,
@@ -105,8 +106,8 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     password: z.string(),
   });
 
-  // GET /auth/login - Attempt password login (TODO: token auth)
-  server.get("/login", async (request, reply) => {
+  // POST /auth/login - Attempt password login
+  server.post("/login", async (request, reply) => {
     const parsed = loginParamsSchema.safeParse(request.query);
     if (!parsed.success) {
       reply.status(400);
@@ -138,12 +139,39 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       setTokenCookies(reply, tokenData);
 
       console.log(`Login successful: ${email}`);
-      return { msg: "Login successful" };
+      return { message: "Login successful" };
     } catch (error) {
       reply.code(500);
       console.log(error);
       return { error: "Database error occurred" };
     }
+  });
+
+  // POST /auth/logout - Logout the current session
+  server.post("/logout", async (request, reply) => {
+    const accessToken = request.cookies?.accessToken;
+    if (!accessToken) {
+      reply.code(401).send({ error: "No active session found." });
+      return;
+    }
+
+    const session = await getSessionByAccessToken(server, accessToken);
+    if (!session) {
+      reply.code(401).send({ error: "Invalid session." });
+      return;
+    }
+
+    const success = await deleteUserSession(server, session.session.id);
+    if (!success) {
+      reply.code(500).send({ error: "Failed to delete session." });
+      return;
+    }
+
+    reply.clearCookie("accessToken");
+    reply.clearCookie("refreshToken");
+
+    console.log(`Logout successful: ${session.user.email}`);
+    return { status: "success", message: "Logged out successfully." };
   });
 
 }
