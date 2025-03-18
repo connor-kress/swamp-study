@@ -42,3 +42,10 @@ export type SessionWithUser = {
   user: User,
   session: UserSession,
 };
+
+export type TokenData = {
+  accessToken: string,
+  refreshToken: string,
+  accessExpires: Date,
+  refreshExpires: Date,
+};

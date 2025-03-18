@@ -15,7 +15,24 @@ import {
   updateSessionTokens,
 } from "../db/queries";
 import { generateToken, verifyPassword } from "../util/crypt";
-import { SessionWithUser } from "../types";
+import { SessionWithUser, TokenData } from "../types";
+
+function setTokenCookies(reply: FastifyReply, data: TokenData) {
+    reply.setCookie("accessToken", data.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      expires: data.accessExpires,
+    });
+    reply.setCookie("refreshToken", data.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      expires: data.refreshExpires,
+    });
+}
 
 export async function verifyAccessToken(
   server: FastifyInstance,
@@ -52,40 +69,23 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     }
 
     // Generate new tokens for rolling sessions
-    const newAccessToken = generateToken();
-    const newRefreshToken = generateToken();
-    const newAccessExpires = new Date(Date.now() + 15*60*1000); // 15 minutes
-    const newRefreshExpires = new Date(Date.now() + 7*24*60*60*1000); // 7 days
+    const tokenData: TokenData = {
+      accessToken: generateToken(),
+      refreshToken: generateToken(),
+      accessExpires: new Date(Date.now() + 15*60*1000), // 15 minutes
+      refreshExpires: new Date(Date.now() + 7*24*60*60*1000), // 7 days
+    }
 
     // Update user session in db
-    const newSession = await updateSessionTokens(server, session.session.id, {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-        accessExpires: newAccessExpires,
-        refreshExpires: newRefreshExpires,
-    });
+    const newSession = await updateSessionTokens(
+      server, session.session.id, tokenData
+    );
     if (!newSession) {
       reply.code(500).send({ error: "Unable to update user session." });
       return null;
     }
     session.session = newSession;
-
-    // Set new cookies
-    reply.setCookie("accessToken", newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      expires: newAccessExpires,
-    });
-    reply.setCookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      expires: newRefreshExpires,
-    });
-
+    setTokenCookies(reply, tokenData);
     return { status: "success", data: session };
   });
 
@@ -125,35 +125,18 @@ const authRoutes: FastifyPluginAsync = async (server) => {
         return { error: "Invalid password" };
       }
 
-      const accessToken = generateToken();
-      const refreshToken = generateToken();
-      const accessExpires = new Date(Date.now() + 15*60*1000); // 15 mins
-      const refreshExpires = new Date(Date.now() + 7*24*60*60*1000); // 7 days
       const user = await getUserByEmail(server, email);
       if (!user) throw new Error("User should always exist here");
 
-      await createUserSession(server, {
-        user_id: user.id,
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        access_expires: accessExpires,
-        refresh_expires: refreshExpires,
-      });
+      const tokenData: TokenData = {
+        accessToken: generateToken(),
+        refreshToken: generateToken(),
+        accessExpires: new Date(Date.now() + 15*60*1000), // 15 minutes
+        refreshExpires: new Date(Date.now() + 7*24*60*60*1000), // 7 days
+      }
+      await createUserSession(server, user.id, tokenData);
+      setTokenCookies(reply, tokenData);
 
-      reply.setCookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/",
-        expires: accessExpires,
-      });
-      reply.setCookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/",
-        expires: refreshExpires,
-      });
       console.log(`Login successful: ${email}`);
       return { msg: "Login successful" };
     } catch (error) {

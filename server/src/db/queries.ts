@@ -6,6 +6,7 @@ import {
   UserSession,
   UserSessionSchema,
   SessionWithUser,
+  TokenData,
 } from "../types";
 
 export async function getUserById(
@@ -89,13 +90,10 @@ export async function deleteUser(
   }
 }
 
-export type NewUserSessionInput = Omit<
-  UserSession, "id" | "created_at" | "updated_at"
->;
-
 export async function createUserSession(
   server: FastifyInstance,
-  data: NewUserSessionInput
+  userId: number,
+  data: TokenData,
 ): Promise<UserSession> {
   const client = await server.pg.connect();
   try {
@@ -105,11 +103,11 @@ export async function createUserSession(
       VALUES ($1, $2, $3, $4, $5)
       RETURNING *`,
       [
-        data.user_id,
-        data.access_token,
-        data.refresh_token,
-        data.access_expires,
-        data.refresh_expires,
+        userId,
+        data.accessToken,
+        data.refreshToken,
+        data.accessExpires,
+        data.refreshExpires,
       ],
     );
     return UserSessionSchema.parse(rows[0]);
@@ -217,12 +215,7 @@ export async function getSessionByRefreshToken(
 export async function updateSessionTokens(
   server: FastifyInstance,
   sessionId: number,
-  data: {
-    accessToken: string;
-    refreshToken: string;
-    accessExpires: Date;
-    refreshExpires: Date;
-  },
+  data: TokenData,
 ): Promise<UserSession | null> {
   const client = await server.pg.connect();
   try {
