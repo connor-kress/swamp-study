@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto"
 
 const saltRounds = 12; // More rounds for slower hashing
 
@@ -22,5 +23,13 @@ export async function verifyPassword(
   password: string,
   passwordHash: string
 ): Promise<boolean> {
-  return bcrypt.compare(password, passwordHash);
+  return await bcrypt.compare(password, passwordHash);
+}
+
+/**
+ * Generates a random hexidecimal string.
+ * @param size The number of bytes to generate (defaults to 32).
+ */
+export function generateToken(size = 32): string {
+  return crypto.randomBytes(size).toString("hex");
 }

@@ -14,13 +14,8 @@ import {
   getUserByEmail,
   updateSessionTokens,
 } from "../db/queries";
-import { verifyPassword } from "../util/crypt";
-import crypto from "crypto"
+import { generateToken, verifyPassword } from "../util/crypt";
 import { SessionWithUser } from "../types";
-
-function generateToken(size = 32): string {
-  return crypto.randomBytes(size).toString("hex");
-}
 
 export async function verifyAccessToken(
   server: FastifyInstance,
