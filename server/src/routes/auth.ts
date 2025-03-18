@@ -41,11 +41,13 @@ export async function verifyAccessToken(
 ): Promise<SessionWithUser | null> {
   const accessToken = request.cookies?.accessToken;
   if (!accessToken) {
+    console.log("No access token provided");
     reply.code(401).send({ error: "Access token missing." });
     return null;
   }
   const session = await getSessionByAccessToken(request.server, accessToken);
   if (!session) {
+    console.log("Invalid or expired access token.");
     reply.code(401).send({ error: "Invalid or expired access token." });
     return null;
   }
@@ -54,7 +56,7 @@ export async function verifyAccessToken(
 
 const authRoutes: FastifyPluginAsync = async (server) => {
 
-  // POST /auth/refresh - Attempts rolling token refresh with refresh token
+  // POST /auth/refresh - Attempts rolling token refresh with refresh token.
   server.post("/refresh", async (request, reply) => {
     const refreshToken = request.cookies?.refreshToken;
     if (!refreshToken) {
@@ -89,7 +91,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     return { status: "success", data: session };
   });
 
-  // GET /auth/verify - Verifies access token
+  // GET /auth/verify - Verifies access token.
   server.get("/verify", async (request, reply) => {
     const session = await verifyAccessToken(request, reply);
     if (!session) {
@@ -105,7 +107,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     password: z.string(),
   });
 
-  // POST /auth/login - Attempt password login
+  // POST /auth/login - Attempt password login.
   server.post("/login", async (request, reply) => {
     const parsed = loginParamsSchema.safeParse(request.query);
     if (!parsed.success) {
@@ -146,7 +148,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     }
   });
 
-  // POST /auth/logout - Logout the current session
+  // POST /auth/logout - Logout the current session.
   server.post("/logout", async (request, reply) => {
     const session = await verifyAccessToken(request, reply);
     if (!session) {
@@ -167,7 +169,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     return { status: "success", message: "Logged out successfully." };
   });
 
-  // POST /auth/logout-all - Logout all sessions for a user
+  // POST /auth/logout-all - Logout all sessions for a user.
   server.post("/logout-all", async (request, reply) => {
     const session = await verifyAccessToken(request, reply);
     if (!session) {

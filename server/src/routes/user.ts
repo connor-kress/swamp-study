@@ -9,6 +9,7 @@ import {
 } from "../db/queries";
 import { CreateUserInputSchema } from "../types";
 import { hashPassword } from "../util/crypt";
+import { verifyAccessToken } from "./auth";
 
 const idParamsSchema = z.object({
   id: z.string().transform((val) => parseInt(val, 10)),
@@ -16,7 +17,7 @@ const idParamsSchema = z.object({
 
 const userRoutes: FastifyPluginAsync = async (server) => {
 
-  // GET /user/:id - fetch a user by ID.
+  // GET /user/:id - Fetch a user by ID.
   server.get("/:id", async (request, reply) => {
     const parsed = idParamsSchema.safeParse(request.params);
     if (!parsed.success) {
@@ -24,6 +25,15 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       return { error: parsed.error.flatten() };
     }
     const { id } = parsed.data;
+    const session = await verifyAccessToken(request, reply);
+    const user = session?.user
+    if (!user || (user.id !== id && user.role !== "admin")) {
+      if (user) reply.code(401).send({
+        error: "Invalid credentials for account.",
+      });
+      console.log("Verification failed for GET /user/:id");
+      return;
+    }
 
     try {
       const user = await getUserById(server, Number(id));
@@ -39,7 +49,7 @@ const userRoutes: FastifyPluginAsync = async (server) => {
     }
   });
 
-  // POST /user - create a new user.
+  // POST /user/ - Create a new user (TODO: email auth and admin protection).
   server.post("/", async (request, reply) => {
     const parsed = CreateUserInputSchema.safeParse(request.body);
     if (!parsed.success) {
@@ -64,7 +74,7 @@ const userRoutes: FastifyPluginAsync = async (server) => {
     }
   });
 
-  // DELETE /user/:id - delete a user by ID.
+  // DELETE /user/:id - Delete a user by ID.
   server.delete("/:id", async (request, reply) => {
     const parsed = idParamsSchema.safeParse(request.params);
     if (!parsed.success) {
@@ -72,6 +82,15 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       return { error: parsed.error.flatten() };
     }
     const { id } = parsed.data;
+    const session = await verifyAccessToken(request, reply);
+    const user = session?.user
+    if (!user || (user.id !== id && user.role !== "admin")) {
+      if (user) reply.code(401).send({
+        error: "Invalid credentials for account.",
+      });
+      console.log("Verification failed for DELETE /user/:id");
+      return;
+    }
 
     try {
       const success = await deleteUser(server, id);
@@ -80,9 +99,10 @@ const userRoutes: FastifyPluginAsync = async (server) => {
         return { error: "User not found" };
       }
       reply.status(200);
-      return { status: "success", message: `User ${id} deleted` };
+      console.log(`Successfully deleted account: ${user.email}`);
+      return { status: "success", message: `Account ${user.email} deleted` };
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error(`Error deleting account: ${user.email} -`, error);
       reply.status(500);
       return { error: "Database error occurred" };
     }
