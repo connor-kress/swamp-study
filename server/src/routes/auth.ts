@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import {
   createUserSession,
+  deleteAllUserSessions,
   deleteUserSession,
   getPasswordHashByEmail,
   getSessionByAccessToken,
@@ -149,15 +150,9 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
   // POST /auth/logout - Logout the current session
   server.post("/logout", async (request, reply) => {
-    const accessToken = request.cookies?.accessToken;
-    if (!accessToken) {
-      reply.code(401).send({ error: "No active session found." });
-      return;
-    }
-
-    const session = await getSessionByAccessToken(server, accessToken);
+    const session = await verifyAccessToken(server, request, reply);
     if (!session) {
-      reply.code(401).send({ error: "Invalid session." });
+      console.log("Logout failed");
       return;
     }
 
@@ -172,6 +167,27 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
     console.log(`Logout successful: ${session.user.email}`);
     return { status: "success", message: "Logged out successfully." };
+  });
+
+  // POST /auth/logout-all - Logout all sessions for a user
+  server.post("/logout-all", async (request, reply) => {
+    const session = await verifyAccessToken(server, request, reply);
+    if (!session) {
+      console.log("Logout-all failed");
+      return;
+    }
+
+    const rowCount = await deleteAllUserSessions(server, session.user.id);
+    if (rowCount === 0) {
+      reply.code(500).send({ error: "Failed to delete sessions." });
+      return;
+    }
+
+    reply.clearCookie("accessToken");
+    reply.clearCookie("refreshToken");
+
+    console.log(`Logout-all successful: ${session.user.email} (${rowCount})`);
+    return { status: "success", message: "All sessions have been logged out." };
   });
 
 }

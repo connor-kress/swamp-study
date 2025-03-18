@@ -154,6 +154,23 @@ export async function deleteUserSession(
   }
 }
 
+export async function deleteAllUserSessions(
+  server: FastifyInstance,
+  userId: number,
+): Promise<number> {
+  const client = await server.pg.connect();
+  try {
+    const { rowCount } = await client.query(
+      `DELETE FROM user_sessions WHERE user_id = $1`, [userId]
+    );
+    return rowCount;
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function getSessionByAccessToken(
   server: FastifyInstance,
   accessToken: string,
