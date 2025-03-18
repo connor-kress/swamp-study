@@ -35,6 +35,15 @@ function setTokenCookies(reply: FastifyReply, data: TokenData) {
     });
 }
 
+function generateNewTokenData(): TokenData {
+  return {
+    accessToken: generateToken(),
+    refreshToken: generateToken(),
+    accessExpires: new Date(Date.now() + 15*60*1000), // 15 minutes
+    refreshExpires: new Date(Date.now() + 7*24*60*60*1000), // 7 days
+  };
+}
+
 export async function verifyAccessToken(
   request: FastifyRequest,
   reply: FastifyReply,
@@ -70,15 +79,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       return null;
     }
 
-    // Generate new tokens for rolling sessions
-    const tokenData: TokenData = {
-      accessToken: generateToken(),
-      refreshToken: generateToken(),
-      accessExpires: new Date(Date.now() + 15*60*1000), // 15 minutes
-      refreshExpires: new Date(Date.now() + 7*24*60*60*1000), // 7 days
-    }
-
-    // Update user session in db
+    const tokenData = generateNewTokenData();
     const newSession = await updateSessionTokens(
       server, session.session.id, tokenData
     );
@@ -130,12 +131,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       const user = await getUserByEmail(server, email);
       if (!user) throw new Error("User should always exist here");
 
-      const tokenData: TokenData = {
-        accessToken: generateToken(),
-        refreshToken: generateToken(),
-        accessExpires: new Date(Date.now() + 15*60*1000), // 15 minutes
-        refreshExpires: new Date(Date.now() + 7*24*60*60*1000), // 7 days
-      }
+      const tokenData = generateNewTokenData();
       await createUserSession(server, user.id, tokenData);
       setTokenCookies(reply, tokenData);
 
