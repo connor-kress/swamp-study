@@ -25,7 +25,7 @@ function Home() {
   );
 };
 
-// Login Page (Placeholder)
+// Login Page
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -96,7 +96,7 @@ function Login() {
 );
 };
 
-// Signup Page (Placeholder)
+// Signup Page
 function Signup () {
   const [name, setName] = useState('');
   const [gradYear, setGradYear] = useState(0);
@@ -189,7 +189,7 @@ function Signup () {
         />
       </label>
       <br />
-      <Link to="/signup" style={{ color: 'black' }}>New here? Sign up here!</Link>
+      <Link to="/login" style={{ color: 'black' }}>Already have an account? Login here!</Link>
       <br />
       <button type="submit" style={{ backgroundColor: '#C2D5C8', color: 'black', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', boxShadow: '0px 0px 5px rgba(0, 0, 0, 0.3)' }}>
         Join
