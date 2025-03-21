@@ -69,12 +69,14 @@ const authRoutes: FastifyPluginAsync = async (server) => {
   server.post("/refresh", async (request, reply) => {
     const refreshToken = request.cookies?.refreshToken;
     if (!refreshToken) {
+      console.log(`Refresh failed: Refresh token missing`);
       reply.code(401).send({ error: "Refresh token missing." });
       return;
     }
 
     let session = await getSessionByRefreshToken(server, refreshToken);
     if (!session) {
+      console.log(`Refresh failed: Invalid session`);
       reply.code(401).send({ error: "Invalid session." });
       return null;
     }
@@ -84,11 +86,13 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       server, session.session.id, tokenData
     );
     if (!newSession) {
+      console.log(`Refresh failed: Unable to update user session`);
       reply.code(500).send({ error: "Unable to update user session." });
       return null;
     }
     session.session = newSession;
     setTokenCookies(reply, tokenData);
+    console.log("Refresh successful");
     return { status: "success", data: session };
   });
 

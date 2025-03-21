@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useAuthFetch } from "../hooks/useAuthFetch";
 
 export default function LogoutButton() {
+  const authFetch = useAuthFetch();
   const navigate = useNavigate();
   const [logoutAll, setLogoutAll] = useState(false);
 
@@ -9,10 +11,7 @@ export default function LogoutButton() {
     const endpoint = logoutAll ? "/api/auth/logout-all"
                                : "/api/auth/logout";
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        credentials: "include",
-      });
+      const response = await authFetch(endpoint, { method: "POST" });
 
       if (!response.ok) {
         const errorData = await response.json();

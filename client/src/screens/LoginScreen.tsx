@@ -3,6 +3,7 @@ import viewIcon from "../assets/view.png";
 import hideIcon from "../assets/hide.png";
 import { validateEmailDomain } from "../util/validate";
 import { Link, useNavigate } from "react-router";
+import { useAuthFetch } from "../hooks/useAuthFetch";
 
 type LoginFormData = {
   email: string;
@@ -10,6 +11,7 @@ type LoginFormData = {
 };
 
 export default function LoginScreen() {
+  const authFetch = useAuthFetch();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -51,10 +53,7 @@ export default function LoginScreen() {
 
   async function verifySession() {
     try {
-      const response = await fetch("/api/auth/verify", {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await authFetch("/api/auth/verify", { method: "GET" });
 
       if (!response.ok) {
         console.log("No valid session found.");
@@ -65,8 +64,8 @@ export default function LoginScreen() {
       const data = await response.json();
       console.log("Session verified:", data.user);
       navigate("/dashboard");
-    } catch (error) {
-      console.error("Error verifying session:", error);
+    } catch (err) {
+      console.error("Error verifying session:", err);
     }
   }
 
