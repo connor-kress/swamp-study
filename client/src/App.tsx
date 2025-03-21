@@ -1,17 +1,18 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router"
+import { BrowserRouter, Routes, Route } from "react-router";
+import DashboardScreen from "./screens/DashboardScreen";
 import HomeScreen from "./screens/HomeScreen";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 
 export default function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomeScreen />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/register" element={<RegisterScreen />} />
-        <Route path="/dashboard" element={<h1>Dashboard</h1>} />
+        <Route path="/dashboard" element={<DashboardScreen />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }

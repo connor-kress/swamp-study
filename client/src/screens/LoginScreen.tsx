@@ -35,7 +35,7 @@ export default function LoginScreen() {
       );
 
       if (!response.ok) {
-        const json = response.status === 401 ? await response.json() : null;
+        const json = await response.json();
         throw new Error(json?.error || "Unknown");
       }
 
