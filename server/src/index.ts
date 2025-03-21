@@ -1,12 +1,17 @@
 import fastify from "fastify"
 import fastifyPostgres from "fastify-postgres"
 import cookie from "fastify-cookie"
+import fastifyCors from "@fastify/cors";
 
 import config from "./config"
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 
 const server = fastify();
+
+server.register(fastifyCors, {
+  origin: ["http://localhost:5173"] // default Vite port
+});
 
 server.register(fastifyPostgres, {
   connectionString: `postgres://${config.user}:${config.password}@${config.host}:${config.port}/${config.database}`,
