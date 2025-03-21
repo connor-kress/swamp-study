@@ -2,8 +2,32 @@ import { FormEvent, useEffect, useState } from "react";
 import viewIcon from "../assets/view.png";
 import hideIcon from "../assets/hide.png";
 import { validateEmailDomain } from "../util/validate";
-import { Link, useNavigate } from "react-router";
+import { Link, NavigateFunction, useNavigate } from "react-router";
 import { useAuthFetch } from "../hooks/useAuthFetch";
+
+export async function attemptLogin(
+  params: URLSearchParams,
+  navigate: NavigateFunction,
+) {
+    try {
+      const response = await fetch(`/api/auth/login?${params.toString()}`, {
+        method: "POST"
+      });
+
+      if (!response.ok) {
+        const json = await response.json();
+        throw new Error(json?.error || "Unknown error");
+      }
+
+      const data = await response.json();
+      if (data.error) throw data.error;
+      console.log("Login successful:", data);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error logging in:", error);
+      throw error;
+    }
+}
 
 type LoginFormData = {
   email: string;
@@ -30,25 +54,8 @@ export default function LoginScreen() {
       email: formData.email,
       password: formData.password,
     });
-    console.log(`Email: ${formData.email}, Password: ${formData.password}`);
-    try {
-      const response = await fetch(`/api/auth/login?${params.toString()}`,
-        { method: "POST" },
-      );
-
-      if (!response.ok) {
-        const json = await response.json();
-        throw new Error(json?.error || "Unknown error");
-      }
-
-      const data = await response.json();
-      if (data.error) throw data.error;
-      console.log("Login successful:", data);
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Error logging in:", error);
-      throw error;
-    }
+    console.log("Login params:", params);
+    attemptLogin(params, navigate);
   }
 
   async function verifySession() {

@@ -4,6 +4,7 @@ import hideIcon from "../assets/hide.png";
 import SwampStudy from "../components/SwampStudy";
 import { validateEmailDomain } from "../util/validate";
 import { Link, useNavigate } from "react-router";
+import { attemptLogin } from "./LoginScreen";
 
 type RegisterFormData = {
     firstName: string;
@@ -54,11 +55,17 @@ export default function RegisterScreen() {
 
       const data = await response.json();
       console.log("User registered successfully:", data);
-      navigate("/login");
+      // navigate("/login");
     } catch (error) {
       console.error("Error registering user:", error);
       throw error;
     }
+    const params = new URLSearchParams({
+      email: formData.email,
+      password: formData.password,
+    });
+    console.log("Login params:", params);
+    attemptLogin(params, navigate);
   }
 
   return (
