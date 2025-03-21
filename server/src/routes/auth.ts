@@ -22,14 +22,14 @@ function setTokenCookies(reply: FastifyReply, data: TokenData) {
     reply.setCookie("accessToken", data.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       expires: data.accessExpires,
     });
     reply.setCookie("refreshToken", data.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       expires: data.refreshExpires,
     });
@@ -100,7 +100,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       return;
     }
     console.log(`Verification successful: ${session.user.email}`);
-    return { session };
+    return { user: session.user };
   });
 
   const loginParamsSchema = z.object({

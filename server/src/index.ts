@@ -10,7 +10,8 @@ import userRoutes from "./routes/user";
 const server = fastify();
 
 server.register(fastifyCors, {
-  origin: ["http://localhost:5173"] // default Vite port
+  origin: ["http://localhost:5173"], // default Vite port
+  credentials: true,
 });
 
 server.register(fastifyPostgres, {
@@ -19,10 +20,10 @@ server.register(fastifyPostgres, {
 
 server.register(cookie);
 
-server.register(authRoutes, { prefix: "/auth" });
-server.register(userRoutes, { prefix: "/user" });
+server.register(authRoutes, { prefix: "/api/auth" });
+server.register(userRoutes, { prefix: "/api/user" });
 
-server.get("/ping", async (_request, _reply) => {
+server.get("/api/ping", async (_request, _reply) => {
   return "pong";
 });
 

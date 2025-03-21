@@ -10,6 +10,7 @@ export default function App() {
         <Route path="/" element={<HomeScreen />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/register" element={<RegisterScreen />} />
+        <Route path="/dashboard" element={<h1>Dashboard</h1>} />
       </Routes>
     </Router>
   );

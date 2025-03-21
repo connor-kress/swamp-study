@@ -1,8 +1,8 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import viewIcon from "../assets/view.png";
 import hideIcon from "../assets/hide.png";
 import { validateEmailDomain } from "../util/validate";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 type LoginFormData = {
   email: string;
@@ -10,6 +10,7 @@ type LoginFormData = {
 };
 
 export default function LoginScreen() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: ""
@@ -21,16 +22,57 @@ export default function LoginScreen() {
     setFormData(prevData => ({ ...prevData, [name]: value }));
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!formData.email.endsWith("@ufl.edu")) {
-      console.error("Invalid UF email (must end with @ufl.edu)");
-      return;
-    }
+    const params = new URLSearchParams({
+      email: formData.email,
+      password: formData.password,
+    });
     console.log(`Email: ${formData.email}, Password: ${formData.password}`);
-    // TODO: Integrate with backend
+    try {
+      const response = await fetch(`/api/auth/login?${params.toString()}`,
+        { method: "POST" },
+      );
+
+      if (!response.ok) {
+        const json = response.status === 401 ? await response.json() : null;
+        throw new Error(json?.error || "Unknown");
+      }
+
+      const data = await response.json();
+      if (data.error) throw data.error;
+      console.log("Login successful:", data);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error logging in:", error);
+      throw error;
+    }
   }
 
+  async function verifySession() {
+    try {
+      const response = await fetch("/api/auth/verify", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        console.log("No valid session found.");
+        // TODO: try refresh token
+        return;
+      }
+
+      const data = await response.json();
+      console.log("Session verified:", data.user);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error verifying session:", error);
+    }
+  }
+
+  useEffect(() => {
+    verifySession();
+  }, [navigate]);
 
   return (
     <div style={{ textAlign: "center", marginTop: "100px" }}>

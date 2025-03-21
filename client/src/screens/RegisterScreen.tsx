@@ -39,7 +39,7 @@ export default function RegisterScreen() {
     };
     console.log("Payload:", payload);
     try {
-      const response = await fetch("http://localhost:3000/user", {
+      const response = await fetch("/api/user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,7 +48,7 @@ export default function RegisterScreen() {
       });
 
       if (!response.ok) {
-        const json = await response.json();
+        const json = response.status === 401 ? await response.json() : null;
         throw new Error(json?.error || "Unknown");
       }
 
