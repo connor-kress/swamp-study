@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router'
-import { useState } from 'react';
+import { FormEvent, useState } from 'react';
 import viewIcon from './assets/view.png';
 import hideIcon from './assets/hide.png';
 
@@ -34,23 +34,43 @@ function Home() {
   );
 }
 
+function validateEmailDomain(e: React.FormEvent<HTMLInputElement>) {
+    const target = e.currentTarget;
+    const email = target.value;
+    // Only set the error if the field is not empty
+    if (email && !email.endsWith("@ufl.edu")) {
+      target.setCustomValidity(
+        "UF email required."
+      );
+    } else {
+      target.setCustomValidity("");
+    }
+}
+
+type LoginFormData = {
+  email: string;
+  password: string;
+};
+
 function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState<LoginFormData>({
+    email: "",
+    password: ""
+  });
   const [passwordVisible, setPasswordVisible] = useState(false);
 
-  function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setFormData(prevData => ({ ...prevData, [name]: value }));
+  }
+
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const data = { 
-      email: (e.target as HTMLFormElement).email.value,
-      password: (e.target as HTMLFormElement).password.value
-    };
-    console.log(data);
-
-    setEmail(data.email);
-    setPassword(data.password);
-
-    console.log(`Email: ${email}, Password: ${password}`);
+    if (!formData.email.endsWith("@ufl.edu")) {
+      console.error("Invalid UF email (must end with @ufl.edu)");
+      return;
+    }
+    console.log(`Email: ${formData.email}, Password: ${formData.password}`);
     // TODO: Integrate with backend
   }
 
@@ -61,45 +81,55 @@ function LoginScreen() {
     <p>Enter your UF email and password to login</p>
     <form
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-      onSubmit={handleLogin}
+      onSubmit={handleSubmit}
     >
       <label style={{ textAlign: 'center' }}>
         <input
+          style= {{ alignItems: 'center' }}
           type="text"
           id="email"
           name="email"
           placeholder="UF email"
-          style= {{ alignItems: 'center' }}
+          value={formData.email}
+          minLength={10}
+          onChange={handleInputChange}
+          onBlur={validateEmailDomain}
+          onInput={validateEmailDomain}
+          required
         />
       </label>
-      <br />
+      <br/>
       <label style={{ textAlign: 'center', paddingLeft: '20px' }}>
         <input
+          style= {{ alignItems: 'center' }}
           type={passwordVisible ? "text" : "password"}
           id="password"
           name="password"
           placeholder="password"
-          style= {{ alignItems: 'center' }}
+          value={formData.password}
+          minLength={5}
+          onChange={handleInputChange}
+          required
         />
-      <img 
-        src={passwordVisible ? viewIcon : hideIcon} 
+      <img
+        src={passwordVisible ? viewIcon : hideIcon}
         onClick={() => setPasswordVisible(prev => !prev)}
-        alt={passwordVisible ? "Hide Password" : "View Password"} 
-        style={{ 
-          cursor: 'pointer', 
-          width: '20px', 
-          height: '20px', 
-          position: 'relative', 
-          top: '5px', 
-          left: '-25px' 
-        }} 
+        alt={passwordVisible ? "Hide Password" : "View Password"}
+        style={{
+          cursor: 'pointer',
+          width: '20px',
+          height: '20px',
+          position: 'relative',
+          top: '5px',
+          left: '-25px'
+        }}
       />
       </label>
-      <br />
+      <br/>
       <Link to="/register" style={{ color: 'black' }}>
         New here? Sign up here!
       </Link>
-      <br />
+      <br/>
       <button type="submit" style={{ backgroundColor: '#C2D5C8', color: 'black', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', boxShadow: '0px 0px 5px rgba(0, 0, 0, 0.3)' }}>
         Log In
       </button>
@@ -108,114 +138,139 @@ function LoginScreen() {
 );
 }
 
+type RegisterFormData = {
+    firstName: string;
+    lastName: string;
+    gradYear: string;
+    email: string;
+    password: string;
+};
+
 function RegisterScreen() {
-  const [name, setName] = useState('');
-  const [gradYear, setGradYear] = useState(0);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState<RegisterFormData>({
+    firstName: "",
+    lastName: "",
+    gradYear: "",
+    email: "",
+    password: "",
+  });
   const [passwordVisible, setPasswordVisible] = useState(false);
 
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setFormData(prevData => ({ ...prevData, [name]: value }));
+  }
 
-  function handleRegister(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const data = {
-      firstName: (e.target as HTMLFormElement).firstName.value,
-      lastName: (e.target as HTMLFormElement).lastName.value,
-      gradYear: (e.target as HTMLFormElement).gradYear.value,
-      email: (e.target as HTMLFormElement).email.value,
-      password: (e.target as HTMLFormElement).password.value
-      };
-    console.log(data);
-
-    setName(`${data.firstName} ${data.lastName}`);
-    setGradYear(data.gradYear);
-    setEmail(data.email);
-    setPassword(data.password);
-
+    const name = `${formData.firstName} ${formData.lastName}`;
+    const gradYear = Number(formData.gradYear); // will not be invalid
     console.log(`Name: ${name}, Grad Year: ${gradYear
-                }, Email: ${email}, Password: ${password}`);
-    // TODO: send data to backend
+                }, Email: ${formData.email}, Password: ${formData.password}`);
+    // TODO: Integrate with backend
   }
 
   return (
-    <>
     <div style={{ textAlign: 'center', marginTop: '100px' }}>
-    <h1>Welcome to our Swamp!</h1>
-    <p>
-      Find your classmates, friends, and new study buddies by joining
-      us at <SwampStudy />
-    </p>
-    <p>Fill out the below fields to get started!</p>
-    <form
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-      onSubmit={handleRegister}
-    >
-      <label>
-        <input
-          type="text"
-          id="firstName"
-          name="firstName"
-          placeholder="first name"
-        />
-      </label>
-      <label>
-        <input
-          type="text"
-          id="lastName"
-          name="lastName"
-          placeholder="last name"
-        />
-      </label>
-      <label>
-        <input
-          type="number"
-          id="gradYear"
-          name="gradYear"
-          placeholder="grad year"
-        />
-      </label>
-      <label style={{ textAlign: 'center' }}>
-        <input 
-          type="text"
-          id="email"
-          name="email"
-          placeholder="UF email"
-        />
-      </label>
-      <label style={{ textAlign: 'center', paddingLeft: '20px' }}>
-        <input
-            type={passwordVisible ? "text" : "password"}
-            id="password"
-            name="password"
-            placeholder="password"
-            style= {{ alignItems: 'center' }}
+      <h1>Welcome to our Swamp!</h1>
+      <p>
+        Find your classmates, friends, and new study buddies by joining
+        us at <SwampStudy />
+      </p>
+      <p>Fill out the below fields to get started!</p>
+      <form
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+        onSubmit={handleSubmit}
+      >
+        <label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            placeholder="first name"
+            value={formData.firstName}
+            minLength={2}
+            onChange={handleInputChange}
+            required
           />
-        <img 
-          src={passwordVisible ? viewIcon : hideIcon} 
-          onClick={() => setPasswordVisible(prev => !prev)}
-          alt={passwordVisible ? "Hide Password" : "View Password"} 
-          style={{ 
-            cursor: 'pointer', 
-            width: '20px', 
-            height: '20px', 
-            position: 'relative', 
-            top: '5px', 
-            left: '-25px' 
-          }}
-        />
-      </label>
-      <br />
-      <Link to="/login" style={{ color: 'black' }}>
-        Already have an account? Login here!
-      </Link>
-      <br />
-      <button type="submit" style={{ backgroundColor: '#C2D5C8', color: 'black', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', boxShadow: '0px 0px 5px rgba(0, 0, 0, 0.3)' }}>
-        Join
-      </button>
-    </form>
-  </div>
-  </>
-);
+        </label>
+        <label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            placeholder="last name"
+            value={formData.lastName}
+            minLength={2}
+            onChange={handleInputChange}
+            required
+          />
+        </label>
+        <label>
+          <input
+            style={{ width: '175px' }}
+            type="number"
+            id="gradYear"
+            name="gradYear"
+            placeholder="grad year"
+            value={formData.gradYear}
+            min={2025}
+            max={2029}
+            onChange={handleInputChange}
+            required
+          />
+        </label>
+        <label style={{ textAlign: 'center' }}>
+          <input
+            type="text"
+            id="email"
+            name="email"
+            placeholder="UF email"
+            value={formData.email}
+            minLength={10}
+            onChange={handleInputChange}
+            onBlur={validateEmailDomain}
+            onInput={validateEmailDomain}
+            required
+          />
+        </label>
+        <label style={{ textAlign: 'center', paddingLeft: '20px' }}>
+          <input
+              style= {{ alignItems: 'center' }}
+              type={passwordVisible ? "text" : "password"}
+              id="password"
+              name="password"
+              placeholder="password"
+              value={formData.password}
+              minLength={5}
+              onChange={handleInputChange}
+              required
+            />
+          <img
+            src={passwordVisible ? viewIcon : hideIcon}
+            onClick={() => setPasswordVisible(prev => !prev)}
+            alt={passwordVisible ? "Hide Password" : "View Password"}
+            style={{
+              cursor: 'pointer',
+              width: '20px',
+              height: '20px',
+              position: 'relative',
+              top: '5px',
+              left: '-25px'
+            }}
+          />
+        </label>
+        <br/>
+        <Link to="/login" style={{ color: 'black' }}>
+          Already have an account? Login here!
+        </Link>
+        <br/>
+        <button type="submit" style={{ backgroundColor: '#C2D5C8', color: 'black', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', boxShadow: '0px 0px 5px rgba(0, 0, 0, 0.3)' }}>
+          Join
+        </button>
+      </form>
+    </div>
+  );
 }
 
 export default function App() {
