@@ -3,7 +3,7 @@ import viewIcon from "../assets/view.png";
 import hideIcon from "../assets/hide.png";
 import SwampStudy from "../components/SwampStudy";
 import { validateEmailDomain } from "../util/validate";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 type RegisterFormData = {
     firstName: string;
@@ -14,6 +14,7 @@ type RegisterFormData = {
 };
 
 export default function RegisterScreen() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<RegisterFormData>({
     firstName: "",
     lastName: "",
@@ -28,13 +29,36 @@ export default function RegisterScreen() {
     setFormData(prevData => ({ ...prevData, [name]: value }));
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const name = `${formData.firstName} ${formData.lastName}`;
-    const gradYear = Number(formData.gradYear); // will not be invalid
-    console.log(`Name: ${name}, Grad Year: ${gradYear
-                }, Email: ${formData.email}, Password: ${formData.password}`);
-    // TODO: Integrate with backend
+    const payload = {
+      name: `${formData.firstName} ${formData.lastName}`,
+      grad_year: Number(formData.gradYear),  // will not be invalid
+      email: formData.email,
+      password: formData.password,
+    };
+    console.log("Payload:", payload);
+    try {
+      const response = await fetch("http://localhost:3000/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const json = await response.json();
+        throw new Error(json?.error || "Unknown");
+      }
+
+      const data = await response.json();
+      console.log("User registered successfully:", data);
+      navigate("/login");
+    } catch (error) {
+      console.error("Error registering user:", error);
+      throw error;
+    }
   }
 
   return (
