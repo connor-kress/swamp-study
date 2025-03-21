@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
 
 export default function LogoutButton() {
   const navigate = useNavigate();
+  const [logoutAll, setLogoutAll] = useState(false);
 
   async function handleLogout() {
+    const endpoint = logoutAll ? "/api/auth/logout-all"
+                               : "/api/auth/logout";
     try {
-      const response = await fetch("/api/auth/logout", {
+      const response = await fetch(endpoint, {
         method: "POST",
         credentials: "include",
       });
@@ -25,8 +29,19 @@ export default function LogoutButton() {
   }
 
   return (
-    <button onClick={handleLogout} type="button">
-      Logout
-    </button>
+    <div>
+      <label>
+        <input
+          type="checkbox"
+          checked={logoutAll}
+          onChange={() => setLogoutAll(prev => !prev)}
+        />
+        Log out of all sessions
+      </label>
+      <br />
+      <button onClick={handleLogout} type="button">
+        Logout
+      </button>
+    </div>
   );
 }

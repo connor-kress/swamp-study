@@ -36,7 +36,7 @@ export default function LoginScreen() {
 
       if (!response.ok) {
         const json = await response.json();
-        throw new Error(json?.error || "Unknown");
+        throw new Error(json?.error || "Unknown error");
       }
 
       const data = await response.json();
