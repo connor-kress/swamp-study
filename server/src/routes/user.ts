@@ -56,10 +56,10 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       reply.status(400);
       return { error: parsed.error.flatten() };
     }
-    const { email, password, name, grad_year, role } = parsed.data;
+    const { email, password, name, grad_year } = parsed.data;
     const userInput: NewUserInput = {
       email, name, grad_year,
-      role: role ? role : "member",
+      role: "member",
       password_hash: await hashPassword(password),
     };
 
