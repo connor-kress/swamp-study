@@ -30,7 +30,7 @@ function setTokenCookies(reply: FastifyReply, data: TokenData) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      path: "/",
+      path: "/api/auth/refresh",  // only send cookie for refresh
       expires: data.refreshExpires,
     });
 }
