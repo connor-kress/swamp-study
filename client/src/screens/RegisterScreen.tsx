@@ -51,10 +51,11 @@ export default function RegisterScreen() {
       >
         <label>
           <input
+            style={{ width: "175px" }}
             type="text"
             id="firstName"
             name="firstName"
-            placeholder="first name"
+            placeholder="First name"
             value={formData.firstName}
             minLength={2}
             onChange={handleInputChange}
@@ -63,10 +64,11 @@ export default function RegisterScreen() {
         </label>
         <label>
           <input
+            style={{ width: "175px" }}
             type="text"
             id="lastName"
             name="lastName"
-            placeholder="last name"
+            placeholder="Last name"
             value={formData.lastName}
             minLength={2}
             onChange={handleInputChange}
@@ -79,7 +81,7 @@ export default function RegisterScreen() {
             type="number"
             id="gradYear"
             name="gradYear"
-            placeholder="grad year"
+            placeholder="Grad year"
             value={formData.gradYear}
             min={2025}
             max={2029}
@@ -87,8 +89,9 @@ export default function RegisterScreen() {
             required
           />
         </label>
-        <label style={{ textAlign: "center" }}>
+        <label>
           <input
+            style={{ width: "175px" }}
             type="text"
             id="email"
             name="email"
@@ -101,18 +104,18 @@ export default function RegisterScreen() {
             required
           />
         </label>
-        <label style={{ textAlign: "center", paddingLeft: "20px" }}>
+        <label style={{ paddingLeft: "20px" }}>
           <input
-              style= {{ alignItems: "center" }}
-              type={passwordVisible ? "text" : "password"}
-              id="password"
-              name="password"
-              placeholder="password"
-              value={formData.password}
-              minLength={5}
-              onChange={handleInputChange}
-              required
-            />
+            style={{ width: "175px" }}
+            type={passwordVisible ? "text" : "password"}
+            id="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            minLength={5}
+            onChange={handleInputChange}
+            required
+          />
           <img
             src={passwordVisible ? viewIcon : hideIcon}
             onClick={() => setPasswordVisible(prev => !prev)}
