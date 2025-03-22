@@ -22,6 +22,15 @@ services:
     networks:
       - app-network
 
+  client:
+    build: ./client
+    depends_on:
+      - server
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+
 networks:
   app-network:
 
