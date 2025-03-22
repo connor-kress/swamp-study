@@ -34,3 +34,15 @@ server.listen({ port: 3000 }, (err, address) => {
   }
   console.log(`Server listening at ${address}`);
 });
+
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM signal received: closing Fastify");
+  try {
+    await server.close();
+    console.log("Fastify closed");
+    process.exit(0);
+  } catch (err) {
+    console.error("Error during shutdown:", err);
+    process.exit(1);
+  }
+});
