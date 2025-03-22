@@ -1,4 +1,21 @@
 services:
+  traefik:
+    image: traefik:v2.9
+    user: "0"  # root
+    privileged: true
+    command:
+      - --providers.docker=true
+      # Only containers with traefik.enable=true will be exposed.
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+    ports:
+      - "80:80"
+    volumes:
+      # So Traefik can read Docker labels
+      - /var/run/docker.sock:/var/run/docker.sock:ro,Z
+    networks:
+      - app-network
+
   postgres:
     image: postgres:13
     restart: always
@@ -7,9 +24,11 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5432:5432"  # for dev
     networks:
       - app-network
+    labels:
+      - "traefik.enable=false"
 
   server:
     build: ./server
@@ -18,18 +37,26 @@ services:
     env_file:
       - ./server/.env
     ports:
-      - "3000:3000"
+      - "3000:3000"  # for dev
     networks:
       - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.priority=10"
+      - "traefik.http.services.api.loadbalancer.server.port=3000"
 
   client:
     build: ./client
     depends_on:
       - server
-    ports:
-      - "80:80"
     networks:
       - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.client.priority=1"
+      - "traefik.http.services.client.loadbalancer.server.port=80"
 
 networks:
   app-network:
