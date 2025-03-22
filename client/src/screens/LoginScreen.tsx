@@ -40,9 +40,9 @@ export default function LoginScreen() {
         style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
         onSubmit={handleSubmit}
       >
-        <label style={{ textAlign: "center" }}>
+        <label>
           <input
-            style= {{ alignItems: "center" }}
+            style={{ width: "175px" }}
             type="text"
             id="email"
             name="email"
@@ -56,13 +56,13 @@ export default function LoginScreen() {
           />
         </label>
         <br/>
-        <label style={{ textAlign: "center", paddingLeft: "20px" }}>
+        <label style={{ paddingLeft: "20px" }}>
           <input
-            style= {{ alignItems: "center" }}
+            style={{ width: "175px" }}
             type={passwordVisible ? "text" : "password"}
             id="password"
             name="password"
-            placeholder="password"
+            placeholder="Password"
             value={formData.password}
             minLength={5}
             onChange={handleInputChange}
