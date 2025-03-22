@@ -5,8 +5,13 @@ import { validateEmailDomain } from "../util/validate";
 import { Link, NavigateFunction, useNavigate } from "react-router";
 import { useAuthFetch } from "../hooks/useAuthFetch";
 
+type LoginCredentials = {
+  email: string;
+  password: string;
+};
+
 export async function attemptLogin(
-  params: URLSearchParams,
+  credentials: LoginCredentials,
   navigate: NavigateFunction,
   setError: React.Dispatch<React.SetStateAction<string>>,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
@@ -14,13 +19,21 @@ export async function attemptLogin(
     setError("");
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/auth/login?${params.toString()}`, {
-        method: "POST"
+      const response = await fetch(`/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
       });
 
       if (!response.ok) {
-        const json = await response.json();
-        throw new Error(json?.error || "Unknown error");
+        let err = (await response.json())?.error;
+        if (typeof err !== "string") {
+          console.error(err);  // for debugging
+          err = null;
+        }
+        throw new Error(err || "Unknown error");
       }
 
       const data = await response.json();
@@ -53,12 +66,12 @@ export default function LoginScreen() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const params = new URLSearchParams({
+    const credentials = {
       email: formData.email,
       password: formData.password,
-    });
-    console.log("Login params:", params);
-    attemptLogin(params, navigate, setError, setIsLoading);
+    };
+    console.log("Login credentials:", credentials);
+    attemptLogin(credentials, navigate, setError, setIsLoading);
   }
 
   async function verifySession() {

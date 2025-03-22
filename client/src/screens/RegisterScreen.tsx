@@ -59,12 +59,12 @@ export default function RegisterScreen() {
     } finally {
       setIsLoading(false);
     }
-    const params = new URLSearchParams({
+    const credentials = {
       email: formData.email,
       password: formData.password,
-    });
-    console.log("Login params:", params);
-    attemptLogin(params, navigate, setError, setIsLoading);
+    };
+    console.log("Login credentials:", credentials);
+    attemptLogin(credentials, navigate, setError, setIsLoading);
   }
 
   return (

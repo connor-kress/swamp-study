@@ -114,8 +114,9 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
   // POST /auth/login - Attempt password login.
   server.post("/login", async (request, reply) => {
-    const parsed = loginParamsSchema.safeParse(request.query);
+    const parsed = loginParamsSchema.safeParse(request.body);
     if (!parsed.success) {
+      console.log(parsed.error.flatten());
       reply.status(400);
       return { error: parsed.error.flatten() };
     }
