@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:13
+    restart: always
+    env_file:
+      - .db.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  server:
+    build: ./server
+    depends_on:
+      - postgres
+    env_file:
+      - ./server/.env
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+
+volumes:
+  pgdata:
