@@ -24,7 +24,7 @@ export async function attemptLogin(
       }
 
       const data = await response.json();
-      if (data.error) throw data.error;
+      if (data.error) throw new Error(data.error);
       console.log("Login successful:", data);
       navigate("/dashboard");
     } catch (err) {

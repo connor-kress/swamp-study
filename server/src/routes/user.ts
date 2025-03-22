@@ -39,13 +39,13 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       const user = await getUserById(server, Number(id));
       if (!user) {
         reply.code(404);
-        return { error: "User not found" };
+        return { error: "User not found." };
       }
       return user;
     } catch (error) {
       reply.code(500);
       console.log(error);
-      return { error: "Database error occurred" };
+      return { error: "Database error occurred." };
     }
   });
 
@@ -67,10 +67,15 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       const newUser = await createUser(server, userInput);
       reply.status(201);
       return newUser;
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === "23505") {
+        console.error("Error creating user: Email already in use");
+        reply.status(409);  // conflict
+        return { error: "Email already in use." };
+      }
       console.error("Error creating user:", error);
       reply.status(500);
-      return { error: "Database error occurred" };
+      return { error: "Database error occurred." };
     }
   });
 
@@ -96,15 +101,15 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       const success = await deleteUser(server, id);
       if (!success) {
         reply.status(404);
-        return { error: "User not found" };
+        return { error: "User not found." };
       }
       reply.status(200);
       console.log(`Successfully deleted account: ${user.email}`);
-      return { status: "success", message: `Account ${user.email} deleted` };
+      return { status: "success", message: `Account ${user.email} deleted.` };
     } catch (error) {
       console.error(`Error deleting account: ${user.email} -`, error);
       reply.status(500);
-      return { error: "Database error occurred" };
+      return { error: "Database error occurred." };
     }
   });
 

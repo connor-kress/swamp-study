@@ -125,11 +125,11 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       const passwordHash = await getPasswordHashByEmail(server, email);
       if (!passwordHash) {
         reply.code(404);
-        return { error: "User not found" };
+        return { error: "User not found." };
       }
       if (!await verifyPassword(password, passwordHash)) {
         console.log(`Login failed: ${email}`);
-        return { error: "Invalid password" };
+        return { error: "Invalid password." };
       }
 
       const user = await getUserByEmail(server, email);
@@ -144,7 +144,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     } catch (error) {
       reply.code(500);
       console.log(error);
-      return { error: "Database error occurred" };
+      return { error: "Database error occurred." };
     }
   });
 
