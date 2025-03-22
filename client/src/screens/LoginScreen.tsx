@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import viewIcon from "../assets/view.png";
 import hideIcon from "../assets/hide.png";
 import { validateEmailDomain } from "../util/validate";
@@ -8,7 +8,11 @@ import { useAuthFetch } from "../hooks/useAuthFetch";
 export async function attemptLogin(
   params: URLSearchParams,
   navigate: NavigateFunction,
+  setError: React.Dispatch<React.SetStateAction<string>>,
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
 ) {
+    setError("");
+    setIsLoading(true);
     try {
       const response = await fetch(`/api/auth/login?${params.toString()}`, {
         method: "POST"
@@ -23,25 +27,24 @@ export async function attemptLogin(
       if (data.error) throw data.error;
       console.log("Login successful:", data);
       navigate("/dashboard");
-    } catch (error) {
-      console.error("Error logging in:", error);
-      throw error;
+    } catch (err) {
+      console.error("Error logging in:", err);
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setIsLoading(false);
     }
 }
-
-type LoginFormData = {
-  email: string;
-  password: string;
-};
 
 export default function LoginScreen() {
   const authFetch = useAuthFetch();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<LoginFormData>({
+  const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -55,7 +58,7 @@ export default function LoginScreen() {
       password: formData.password,
     });
     console.log("Login params:", params);
-    attemptLogin(params, navigate);
+    attemptLogin(params, navigate, setError, setIsLoading);
   }
 
   async function verifySession() {
@@ -84,6 +87,7 @@ export default function LoginScreen() {
     <div style={{ textAlign: "center", marginTop: "100px" }}>
       <h1>Login</h1>
       <p>Enter your UF email and password to login</p>
+      {error && <p style={{ "color": "red" }}>{error}</p>}
       <form
         style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
         onSubmit={handleSubmit}
@@ -131,13 +135,13 @@ export default function LoginScreen() {
         />
         </label>
         <br/>
+        <button type="submit" style={{ backgroundColor: "#C2D5C8", color: "black", padding: "10px 20px", marginTop: "10px", borderRadius: "10px", cursor: "pointer", boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.3)" }}>
+          {isLoading ? "Loading..." : "Log In"}
+        </button>
+        <br/>
         <Link to="/register" style={{ color: "black" }}>
           New here? Sign up here!
         </Link>
-        <br/>
-        <button type="submit" style={{ backgroundColor: "#C2D5C8", color: "black", padding: "10px 20px", borderRadius: "10px", cursor: "pointer", boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.3)" }}>
-          Log In
-        </button>
       </form>
     </div>
   );

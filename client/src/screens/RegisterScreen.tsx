@@ -6,17 +6,9 @@ import { validateEmailDomain } from "../util/validate";
 import { Link, useNavigate } from "react-router";
 import { attemptLogin } from "./LoginScreen";
 
-type RegisterFormData = {
-    firstName: string;
-    lastName: string;
-    gradYear: string;
-    email: string;
-    password: string;
-};
-
 export default function RegisterScreen() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<RegisterFormData>({
+  const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     gradYear: "",
@@ -24,6 +16,8 @@ export default function RegisterScreen() {
     password: "",
   });
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -32,6 +26,8 @@ export default function RegisterScreen() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
     const payload = {
       name: `${formData.firstName} ${formData.lastName}`,
       grad_year: Number(formData.gradYear),  // will not be invalid
@@ -56,16 +52,19 @@ export default function RegisterScreen() {
       const data = await response.json();
       console.log("User registered successfully:", data);
       // navigate("/login");
-    } catch (error) {
-      console.error("Error registering user:", error);
-      throw error;
+    } catch (err) {
+      console.error("Error registering user:", err);
+      setError(err instanceof Error ? err.message : "Login failed");
+      return;
+    } finally {
+      setIsLoading(false);
     }
     const params = new URLSearchParams({
       email: formData.email,
       password: formData.password,
     });
     console.log("Login params:", params);
-    attemptLogin(params, navigate);
+    attemptLogin(params, navigate, setError, setIsLoading);
   }
 
   return (
@@ -76,6 +75,7 @@ export default function RegisterScreen() {
         us at <SwampStudy />
       </p>
       <p>Fill out the below fields to get started!</p>
+      {error && <p style={{ "color": "red" }}>{error}</p>}
       <form
         style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
         onSubmit={handleSubmit}
@@ -162,15 +162,14 @@ export default function RegisterScreen() {
           />
         </label>
         <br/>
+        <button type="submit" style={{ backgroundColor: "#C2D5C8", color: "black", padding: "10px 20px", marginTop: "10px", borderRadius: "10px", cursor: "pointer", boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.3)" }}>
+          {isLoading ? "Loading..." : "Join"}
+        </button>
+        <br/>
         <Link to="/login" style={{ color: "black" }}>
           Already have an account? Login here!
         </Link>
-        <br/>
-        <button type="submit" style={{ backgroundColor: "#C2D5C8", color: "black", padding: "10px 20px", borderRadius: "10px", cursor: "pointer", boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.3)" }}>
-          Join
-        </button>
       </form>
     </div>
   );
 }
-
