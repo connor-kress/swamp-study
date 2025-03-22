@@ -20,7 +20,6 @@ export const CreateUserInputSchema = z.object({
   password: z.string(),
   name: z.string(),
   grad_year: z.number(),
-  role: z.enum(["admin", "member"]).optional(),
 });
 
 export const UserSessionSchema = z.object({

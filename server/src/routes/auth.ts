@@ -22,15 +22,15 @@ function setTokenCookies(reply: FastifyReply, data: TokenData) {
     reply.setCookie("accessToken", data.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       expires: data.accessExpires,
     });
     reply.setCookie("refreshToken", data.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
+      sameSite: "lax",
+      path: "/api/auth/refresh",  // only send cookie for refresh
       expires: data.refreshExpires,
     });
 }
@@ -69,12 +69,14 @@ const authRoutes: FastifyPluginAsync = async (server) => {
   server.post("/refresh", async (request, reply) => {
     const refreshToken = request.cookies?.refreshToken;
     if (!refreshToken) {
+      console.log(`Refresh failed: Refresh token missing`);
       reply.code(401).send({ error: "Refresh token missing." });
       return;
     }
 
     let session = await getSessionByRefreshToken(server, refreshToken);
     if (!session) {
+      console.log(`Refresh failed: Invalid session`);
       reply.code(401).send({ error: "Invalid session." });
       return null;
     }
@@ -84,11 +86,13 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       server, session.session.id, tokenData
     );
     if (!newSession) {
+      console.log(`Refresh failed: Unable to update user session`);
       reply.code(500).send({ error: "Unable to update user session." });
       return null;
     }
     session.session = newSession;
     setTokenCookies(reply, tokenData);
+    console.log("Refresh successful");
     return { status: "success", data: session };
   });
 
@@ -100,7 +104,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       return;
     }
     console.log(`Verification successful: ${session.user.email}`);
-    return { session };
+    return { user: session.user };
   });
 
   const loginParamsSchema = z.object({
@@ -110,8 +114,9 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
   // POST /auth/login - Attempt password login.
   server.post("/login", async (request, reply) => {
-    const parsed = loginParamsSchema.safeParse(request.query);
+    const parsed = loginParamsSchema.safeParse(request.body);
     if (!parsed.success) {
+      console.log(parsed.error.flatten());
       reply.status(400);
       return { error: parsed.error.flatten() };
     }
@@ -121,11 +126,11 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       const passwordHash = await getPasswordHashByEmail(server, email);
       if (!passwordHash) {
         reply.code(404);
-        return { error: "User not found" };
+        return { error: "User not found." };
       }
       if (!await verifyPassword(password, passwordHash)) {
         console.log(`Login failed: ${email}`);
-        return { error: "Invalid password" };
+        return { error: "Invalid password." };
       }
 
       const user = await getUserByEmail(server, email);
@@ -140,7 +145,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     } catch (error) {
       reply.code(500);
       console.log(error);
-      return { error: "Database error occurred" };
+      return { error: "Database error occurred." };
     }
   });
 
