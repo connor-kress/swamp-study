@@ -94,7 +94,7 @@ To initialize the database schema in docker, run the following commands to copy
 the schema into the docker container and run it:
 
 ```bash
-$ docker cp ./server/src/db/schema.sql <postgres-container-name>:/tmp/schema.sql
-$ docker exec -it <postgres-container-name> \
+# docker cp ./server/src/db/schema.sql <postgres-container-name>:/tmp/schema.sql
+# docker exec -it <postgres-container-name> \
     psql -U <your-user> -d swampstudy -f /tmp/schema.sql
 ```
