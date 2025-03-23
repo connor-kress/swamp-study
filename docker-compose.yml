@@ -5,13 +5,13 @@ services:
     privileged: true
     command:
       - --providers.docker=true
-      # Only containers with traefik.enable=true will be exposed.
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80  # HTTP
       - --entrypoints.websecure.address=:443  # HTTPS
       - --certificatesresolvers.myresolver.acme.email=ckress@ufl.edu
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
       - --certificatesresolvers.myresolver.acme.tlschallenge=true
+
     ports:
       - "80:80"
       - "443:443"
@@ -50,7 +50,6 @@ services:
       - app-network
     labels:
       - "traefik.enable=true"
-      # Define a router for API requests on the secure entrypoint
       - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.api.entrypoints=web,websecure"
       - "traefik.http.routers.api.priority=10"
@@ -66,9 +65,15 @@ services:
       - app-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.client.rule=Host(`yourdomain.com`)"
-      - "traefik.http.routers.client.entrypoints=web,websecure"
-      - "traefik.http.routers.client.priority=1"
+      # HTTP router: listens on port 80 and redirects to HTTPS
+      - "traefik.http.routers.client-http.rule=Host(`swampstudy.com`) || Host(`www.swampstudy.com`)"
+      - "traefik.http.routers.client-http.entrypoints=web"
+      - "traefik.http.routers.client-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+      # HTTPS router: serves the client content over TLS
+      - "traefik.http.routers.client.rule=Host(`swampstudy.com`) || Host(`www.swampstudy.com`)"
+      - "traefik.http.routers.client.entrypoints=websecure"
       - "traefik.http.routers.client.tls=true"
       - "traefik.http.routers.client.tls.certresolver=myresolver"
       - "traefik.http.services.client.loadbalancer.server.port=80"
