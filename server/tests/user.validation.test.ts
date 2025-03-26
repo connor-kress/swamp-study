@@ -36,7 +36,7 @@ describe("POST /api/user - Input Validation", () => {
 
   it("should return 400 when grad_year is not a number", async () => {
     const invalidGradYearPayload = {
-      email: "alice@example.com",
+      email: "alice@ufl.edu",
       password: "securePassword123",
       name: "Alice",
       grad_year: "2024", // Incorrect type: should be a number.
@@ -60,7 +60,7 @@ describe("POST /api/user - Input Validation", () => {
 
   it("should return 400 for missing required fields", async () => {
     const missingFieldPayload = {
-      email: "alice@example.com",
+      email: "alice@ufl.edu",
       name: "Alice",
       grad_year: 2024,
       // Missing password
@@ -81,7 +81,7 @@ describe("POST /api/user - Input Validation", () => {
 
   it("should not return 400 for valid input", async () => {
     const validPayload = {
-      email: "alice@example.com",
+      email: "alice@ufl.edu",
       password: "securePassword123",
       name: "Alice",
       grad_year: 2024,
