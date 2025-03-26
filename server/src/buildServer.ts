@@ -6,6 +6,10 @@ import fastifyCors from "@fastify/cors";
 import config from "./config"
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
+import {
+  getTestingAdminSession,
+  getTestingMemberSession,
+} from "./testHelpers/sessions";
 
 export function buildServer(): FastifyInstance {
   const server = fastify();
@@ -20,6 +24,25 @@ export function buildServer(): FastifyInstance {
   });
 
   server.register(cookie);
+
+  server.addHook("preHandler", async (request, _reply) => {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      request.headers["x-test-auth"] === "1"
+    ) {
+      const role = request.headers["x-test-user-role"];
+      const userIdHeader = request.headers["x-test-user-id"];
+      if (!userIdHeader) throw new Error("Missing x-test-user-id");
+      const testUserId = parseInt(userIdHeader as string, 10);
+      if (isNaN(testUserId)) throw new Error("Invalid x-test-user-id");
+      if (role === "admin") {
+        (request as any).testSession = getTestingAdminSession(testUserId);
+      } else {
+        (request as any).testSession = getTestingMemberSession(testUserId);
+      }
+    }
+  });
+
 
   server.register(authRoutes, { prefix: "/api/auth" });
   server.register(userRoutes, { prefix: "/api/user" });
