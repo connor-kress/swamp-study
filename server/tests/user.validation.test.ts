@@ -12,7 +12,7 @@ afterAll(async () => {
   await server.close();
 });
 
-describe("Create User Input Validation", () => {
+describe("POST /api/user - Input Validation", () => {
   it("should return 400 for invalid email format", async () => {
     const invalidEmailPayload = {
       email: "not-an-email",
@@ -98,13 +98,12 @@ describe("Create User Input Validation", () => {
   });
 });
 
-describe("GET /api/user/:id - Route Behavior", () => {
+describe("GET /api/user/:id - Input Validation and Authorization", () => {
   it("should return 401 when unauthorized", async () => {
     const response = await server.inject({
       method: "GET",
       url: "/api/user/1",
-      headers: { "Content-Type": "application/json" },
-      // no cookies or testing override headers
+      // No authentication override headers provided
     });
     expect(response.statusCode).toBe(401);
     const body = JSON.parse(response.payload);
@@ -114,9 +113,8 @@ describe("GET /api/user/:id - Route Behavior", () => {
   it("should return 400 when provided a non-numeric id", async () => {
     const response = await server.inject({
       method: "GET",
-      url: "/api/user/abc", // invalid id, transforms to NaN
+      url: "/api/user/abc", // invalid user id
       headers: {
-        "Content-Type": "application/json",
         "x-test-auth": "1",
         "x-test-user-role": "admin",
         "x-test-user-id": "1",
@@ -132,7 +130,6 @@ describe("GET /api/user/:id - Route Behavior", () => {
       method: "GET",
       url: "/api/user/69696969", // id does not exist
       headers: {
-        "Content-Type": "application/json",
         "x-test-auth": "1",
         "x-test-user-role": "admin",
         "x-test-user-id": "1",
@@ -143,15 +140,72 @@ describe("GET /api/user/:id - Route Behavior", () => {
     expect(body.error).toBe("User not found.");
   });
 
-  it("should return 401 when a non-admin cross-member access", async () => {
+  it("should return 401 for a non-admin cross-member user fetch", async () => {
     const response = await server.inject({
       method: "GET",
-      url: "/api/user/10",
+      url: "/api/user/10", // attempting to delete user 10
       headers: {
-        "Content-Type": "application/json",
         "x-test-auth": "1",
         "x-test-user-role": "member",
-        "x-test-user-id": "5",  // different from queried user id
+        "x-test-user-id": "5", // logged in as user 5
+      },
+    });
+    expect(response.statusCode).toBe(401);
+    const body = JSON.parse(response.payload);
+    expect(body.error).toBe("Invalid credentials for account.");
+  });
+});
+
+describe("DELETE /api/user/:id - Input Validation and Authorization", () => {
+  it("should return 401 when unauthorized", async () => {
+    const response = await server.inject({
+      method: "DELETE",
+      url: "/api/user/1",
+      // No authentication override headers provided
+    });
+    expect(response.statusCode).toBe(401);
+    const body = JSON.parse(response.payload);
+    expect(body.error).toBe("Access token missing.");
+  });
+
+  it("should return 400 when provided a non-numeric id", async () => {
+    const response = await server.inject({
+      method: "DELETE",
+      url: "/api/user/abc", // invalid user id
+      headers: {
+        "x-test-auth": "1",
+        "x-test-user-role": "admin",
+        "x-test-user-id": "1",
+      },
+    });
+    expect(response.statusCode).toBe(400);
+    const body = JSON.parse(response.payload);
+    expect(body.error).toBe("Invalid user id.");
+  });
+
+  it("should return 404 when provided a non-existent id", async () => {
+    const response = await server.inject({
+      method: "DELETE",
+      url: "/api/user/69696969", // id does not exist
+      headers: {
+        "x-test-auth": "1",
+        "x-test-user-role": "admin",
+        "x-test-user-id": "1",
+      },
+    });
+    expect(response.statusCode).toBe(404);
+    const body = JSON.parse(response.payload);
+    expect(body.error).toBe("User not found.");
+  });
+
+  it("should return 401 for a non-admin cross-member deletion", async () => {
+    const response = await server.inject({
+      method: "DELETE",
+      url: "/api/user/10", // attempting to delete user 10
+      headers: {
+        "x-test-auth": "1",
+        "x-test-user-role": "member",
+        "x-test-user-id": "5", // logged in as user 5
       },
     });
     expect(response.statusCode).toBe(401);

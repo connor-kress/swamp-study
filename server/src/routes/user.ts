@@ -34,7 +34,6 @@ const userRoutes: FastifyPluginAsync = async (server) => {
     if (!session) {
       session = await verifyAccessToken(request, reply);
     }
-
     const user = session?.user
     if (!user || (user.id !== id && user.role !== "admin")) {
       if (user) reply.code(401).send({
@@ -96,7 +95,16 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       return { error: parsed.error.flatten() };
     }
     const { id } = parsed.data;
-    const session = await verifyAccessToken(request, reply);
+    if (isNaN(id)) {
+      reply.code(400).send({ error: "Invalid user id." });
+      console.log("Invalid user id (non-numeric).");
+      return;
+    }
+
+    let session: SessionWithUser | null = (request as any).testSession;
+    if (!session) {
+      session = await verifyAccessToken(request, reply);
+    }
     const user = session?.user
     if (!user || (user.id !== id && user.role !== "admin")) {
       if (user) reply.code(401).send({
