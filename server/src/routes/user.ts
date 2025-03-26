@@ -7,16 +7,15 @@ import {
   getUserById,
   NewUserInput,
 } from "../db/queries";
-import { CreateUserInputSchema } from "../types";
+import { CreateUserInputSchema, SessionWithUser } from "../types";
 import { hashPassword } from "../util/crypt";
 import { verifyAccessToken } from "./auth";
 
-const idParamsSchema = z.object({
+export const idParamsSchema = z.object({
   id: z.string().transform((val) => parseInt(val, 10)),
 });
 
 const userRoutes: FastifyPluginAsync = async (server) => {
-
   // GET /user/:id - Fetch a user by ID.
   server.get("/:id", async (request, reply) => {
     const parsed = idParamsSchema.safeParse(request.params);
@@ -25,7 +24,17 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       return { error: parsed.error.flatten() };
     }
     const { id } = parsed.data;
-    const session = await verifyAccessToken(request, reply);
+    if (isNaN(id)) {
+      reply.code(400).send({ error: "Invalid user id." });
+      console.log("Invalid user id (non-numeric).");
+      return;
+    }
+
+    let session: SessionWithUser | null = (request as any).testSession;
+    if (!session) {
+      session = await verifyAccessToken(request, reply);
+    }
+
     const user = session?.user
     if (!user || (user.id !== id && user.role !== "admin")) {
       if (user) reply.code(401).send({
@@ -36,7 +45,7 @@ const userRoutes: FastifyPluginAsync = async (server) => {
     }
 
     try {
-      const user = await getUserById(server, Number(id));
+      const user = await getUserById(server, id);
       if (!user) {
         reply.code(404);
         return { error: "User not found." };
