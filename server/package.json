@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node build/index.js",
-    "dev": "npx nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" --transpile-only src/index.ts"
+    "dev": "npx nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" --transpile-only src/index.ts",
+    "test": "npx vitest"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,7 @@
     "@types/node": "^22.13.5",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.9"
   }
 }
