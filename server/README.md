@@ -65,7 +65,7 @@ $ psql -U <your-user> -d swampstudy
 Next, bootstrap the database by executing the `schema.sql` file.
 
 ```sql
-\ir ./server/db/schema.sql
+\ir ./server/src/db/schema.sql
 ```
 
 ## Configuring Server
