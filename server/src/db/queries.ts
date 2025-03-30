@@ -82,7 +82,7 @@ export async function deleteUser(
     const { rowCount } = await client.query(
       `DELETE FROM users WHERE id = $1`, [id]
     );
-    return rowCount > 0;
+    return rowCount !== null && rowCount > 0;
   } catch (error) {
     throw error;
   } finally {
@@ -146,7 +146,7 @@ export async function deleteUserSession(
     const { rowCount } = await client.query(
       `DELETE FROM user_sessions WHERE id = $1`, [id]
     );
-    return rowCount > 0;
+    return rowCount !== null && rowCount > 0;
   } catch (error) {
     throw error;
   } finally {
@@ -163,7 +163,7 @@ export async function deleteAllUserSessions(
     const { rowCount } = await client.query(
       `DELETE FROM user_sessions WHERE user_id = $1`, [userId]
     );
-    return rowCount;
+    return rowCount !== null ? rowCount : 0;
   } catch (error) {
     throw error;
   } finally {
@@ -179,12 +179,12 @@ export async function getSessionByAccessToken(
   try {
     const { rows } = await client.query(`
       SELECT
-        row_to_json(u) AS user,
-        row_to_json(s) AS session
+        row_to_json(u) AS "user",
+        row_to_json(s) AS "session"
       FROM user_sessions s
       JOIN users u ON s.user_id = u.id
       WHERE s.access_token = $1
-        AND s.access_expires > CURRENT_TIMESTAMP
+        AND s.access_expires::timestamp > CURRENT_TIMESTAMP::timestamp
       LIMIT 1`,
       [accessToken],
     );
@@ -208,12 +208,12 @@ export async function getSessionByRefreshToken(
   try {
     const { rows } = await client.query(`
       SELECT
-        row_to_json(u) AS user,
-        row_to_json(s) AS session
+        row_to_json(u) AS "user",
+        row_to_json(s) AS "session"
       FROM user_sessions s
       JOIN users u ON s.user_id = u.id
       WHERE s.refresh_token = $1
-        AND s.refresh_expires > CURRENT_TIMESTAMP
+        AND s.refresh_expires::timestamp > CURRENT_TIMESTAMP::timestamp
       LIMIT 1`,
       [refreshToken],
     );
