@@ -47,7 +47,12 @@ function generateNewTokenData(): TokenData {
 export async function verifyAccessToken(
   request: FastifyRequest,
   reply: FastifyReply,
+  allowOverride: boolean = true,
 ): Promise<SessionWithUser | null> {
+  const testSession: SessionWithUser | null = (request as any).testSession;
+  if (testSession && allowOverride) {
+    return testSession;
+  }
   const accessToken = request.cookies?.accessToken;
   if (!accessToken) {
     console.log("No access token provided");
@@ -98,7 +103,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
   // GET /auth/verify - Verifies access token.
   server.get("/verify", async (request, reply) => {
-    const session = await verifyAccessToken(request, reply);
+    const session = await verifyAccessToken(request, reply, false);
     if (!session) {
       console.log(`Verification failed`);
       return;

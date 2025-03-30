@@ -6,10 +6,7 @@ import fastifyCors from "@fastify/cors";
 import config from "./config"
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
-import {
-  getTestingAdminSession,
-  getTestingMemberSession,
-} from "./testHelpers/sessions";
+import { getTestingSession } from "./testHelpers/sessions";
 import { Pool } from "pg";
 
 export function buildServer(pgPool?: Pool): FastifyInstance {
@@ -45,11 +42,8 @@ export function buildServer(pgPool?: Pool): FastifyInstance {
       if (!userIdHeader) throw new Error("Missing x-test-user-id");
       const testUserId = parseInt(userIdHeader as string, 10);
       if (isNaN(testUserId)) throw new Error("Invalid x-test-user-id");
-      if (role === "admin") {
-        (request as any).testSession = getTestingAdminSession(testUserId);
-      } else {
-        (request as any).testSession = getTestingMemberSession(testUserId);
-      }
+      (request as any).testSession = getTestingSession(testUserId,
+                                                       role === "admin");
     }
   });
 

@@ -1,12 +1,15 @@
 import { SessionWithUser } from "../types";
 
-export function getTestingMemberSession(userId: number): SessionWithUser {
+export function getTestingSession(
+  userId: number,
+  isAdmin: boolean,
+): SessionWithUser {
   return {
     session: {
-      id: 111,
+      id: isAdmin ? 777 : 111,
       user_id: userId,
-      access_token: "mock-member-token",
-      refresh_token: "mock-member-token",
+      access_token: isAdmin ? "mock-admin-token" : "mock-member-token",
+      refresh_token: isAdmin ? "mock-admin-token" : "mock-member-token",
       access_expires: new Date(Date.now() + 15*60*1000),
       refresh_expires: new Date(Date.now() + 7*24*60*60*1000),
       created_at: new Date(Date.now()),
@@ -14,33 +17,10 @@ export function getTestingMemberSession(userId: number): SessionWithUser {
     },
     user: {
       id: userId,
-      email: "member@ufl.edu",
-      name: "Testing Member",
+      email: isAdmin ? "admin@ufl.edu" : "member@ufl.edu",
+      name: isAdmin ? "Testing Admin" : "Testing Member",
       grad_year: 2029,
-      role: "member",
-      created_at: new Date(Date.now()),
-    },
-  };
-}
-
-export function getTestingAdminSession(userId: number): SessionWithUser {
-  return {
-    session: {
-      id: 777,
-      user_id: userId,
-      access_token: "mock-admin-token",
-      refresh_token: "mock-admin-token",
-      access_expires: new Date(Date.now() + 15*60*1000),
-      refresh_expires: new Date(Date.now() + 7*24*60*60*1000),
-      created_at: new Date(Date.now()),
-      updated_at: new Date(Date.now()),
-    },
-    user: {
-      id: userId,
-      email: "admin@ufl.edu",
-      name: "Testing Admin",
-      grad_year: 2029,
-      role: "admin",
+      role: isAdmin ? "admin" : "member",
       created_at: new Date(Date.now()),
     },
   };

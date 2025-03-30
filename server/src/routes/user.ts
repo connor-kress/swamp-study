@@ -7,7 +7,7 @@ import {
   getUserById,
   NewUserInput,
 } from "../db/queries";
-import { CreateUserInputSchema, SessionWithUser } from "../types";
+import { CreateUserInputSchema } from "../types";
 import { hashPassword } from "../util/crypt";
 import { verifyAccessToken } from "./auth";
 
@@ -30,10 +30,7 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       return;
     }
 
-    let session: SessionWithUser | null = (request as any).testSession;
-    if (!session) {
-      session = await verifyAccessToken(request, reply);
-    }
+    const session = await verifyAccessToken(request, reply);
     const user = session?.user
     if (!user || (user.id !== id && user.role !== "admin")) {
       if (user) reply.code(401).send({
@@ -101,10 +98,7 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       return;
     }
 
-    let session: SessionWithUser | null = (request as any).testSession;
-    if (!session) {
-      session = await verifyAccessToken(request, reply);
-    }
+    const session = await verifyAccessToken(request, reply);
     const user = session?.user
     if (!user || (user.id !== id && user.role !== "admin")) {
       if (user) reply.code(401).send({
