@@ -25,7 +25,9 @@
     "@types/bcrypt": "^5.0.2",
     "@types/dotenv": "^6.1.1",
     "@types/node": "^22.13.5",
+    "@types/pg": "^8.11.11",
     "nodemon": "^3.1.9",
+    "pg-mem": "^3.0.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
     "vitest": "^3.0.9"
