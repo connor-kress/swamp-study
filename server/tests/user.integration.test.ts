@@ -1,21 +1,18 @@
-import { describe, it, beforeAll, afterAll, beforeEach, expect } from 'vitest';
+import { describe, it, beforeAll, afterAll, expect } from 'vitest';
 import { buildServer } from '../src/buildServer';
-import { deleteUser, getUserByEmail } from '../src/db/queries';
+import { createTestDb, TestDb } from '../src/testHelpers/setupDb';
 
 let server: ReturnType<typeof buildServer>;
+let testDb: TestDb;
 
 beforeAll(async () => {
-  server = buildServer();
+  testDb = createTestDb();
+  server = buildServer(testDb.pool);
   await server.ready();
 });
 
 afterAll(async () => {
   await server.close();
-});
-
-beforeEach(async () => {
-  const user = await getUserByEmail(server, "alice@ufl.edu");
-  if (user) deleteUser(server, user.id);
 });
 
 describe('User API Integration', () => {

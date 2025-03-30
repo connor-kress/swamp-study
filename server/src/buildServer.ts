@@ -10,8 +10,9 @@ import {
   getTestingAdminSession,
   getTestingMemberSession,
 } from "./testHelpers/sessions";
+import { Pool } from "pg";
 
-export function buildServer(): FastifyInstance {
+export function buildServer(pgPool?: Pool): FastifyInstance {
   const server = fastify();
 
   server.register(fastifyCors, {
@@ -19,9 +20,18 @@ export function buildServer(): FastifyInstance {
     credentials: true,
   });
 
-  server.register(fastifyPostgres, {
-    connectionString: `postgres://${config.user}:${config.password}@${config.host}:${config.port}/${config.database}`,
-  });
+  if (pgPool) {
+    (server.pg as any) = pgPool;
+  } else {
+    console.log(`Connecting to postgres: ${config.host}:${config.port}`);
+    server.register(fastifyPostgres, {
+      user: config.user,
+      password: config.password,
+      host: config.host,
+      port: config.port,
+      database: config.database,
+    });
+  }
 
   server.register(cookie);
 
