@@ -40,13 +40,13 @@ type EmailConfig = {
 };
 
 type Config = {
-  BaseUrl: string;
+  baseUrl: string;
   nodeEnv: string;
   dbConfig: DBConfig | undefined;
   emailConfig: EmailConfig;
 };
 
-/*
+/**
  * Gets a database config from environment variables.
  * Any missing database config will lead to an undefined config.
  * This is so tests can be ran without needing a database set up.
@@ -66,7 +66,7 @@ function getDbConfig(): DBConfig | undefined {
 }
 
 const config: Config = {
-  BaseUrl: getRequiredEnvVar("BASE_URL"),
+  baseUrl: getRequiredEnvVar("BASE_URL"),
   nodeEnv: getOptionalEnvVar("NODE_ENV") || "development",
   dbConfig: getDbConfig(),
   emailConfig: {
