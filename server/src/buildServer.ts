@@ -20,21 +20,20 @@ export function buildServer(pgPool?: Pool): FastifyInstance {
   if (pgPool) {
     (server.pg as any) = pgPool;
   } else {
-    console.log(`Connecting to postgres: ${config.host}:${config.port}`);
-    server.register(fastifyPostgres, {
-      user: config.user,
-      password: config.password,
-      host: config.host,
-      port: config.port,
-      database: config.database,
-    });
+    if (!config.dbConfig) {
+      throw new Error("Database config not found.");
+    }
+    console.log(
+      `Connecting to Postgres: ${config.dbConfig.host}:${config.dbConfig.port}`
+    );
+    server.register(fastifyPostgres, config.dbConfig);
   }
 
   server.register(cookie);
 
   server.addHook("preHandler", async (request, _reply) => {
     if (
-      process.env.NODE_ENV !== "production" &&
+      config.nodeEnv === "test" &&
       request.headers["x-test-auth"] === "1"
     ) {
       const role = request.headers["x-test-user-role"];
@@ -42,8 +41,9 @@ export function buildServer(pgPool?: Pool): FastifyInstance {
       if (!userIdHeader) throw new Error("Missing x-test-user-id");
       const testUserId = parseInt(userIdHeader as string, 10);
       if (isNaN(testUserId)) throw new Error("Invalid x-test-user-id");
-      (request as any).testSession = getTestingSession(testUserId,
-                                                       role === "admin");
+      const isAdmin = role === "admin";
+      const testSession = getTestingSession(testUserId, isAdmin);
+      (request as any).testSession = testSession;
     }
   });
 
