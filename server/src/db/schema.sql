@@ -23,6 +23,16 @@ CREATE TABLE user_sessions (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE pending_verifications (
+    email VARCHAR(100) PRIMARY KEY,
+    code_hash VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_pending_verifications_expires_at
+    ON pending_verifications(expires_at);
+
 CREATE TABLE courses (
     id SERIAL PRIMARY KEY,
     code CHAR(10) NOT NULL,
