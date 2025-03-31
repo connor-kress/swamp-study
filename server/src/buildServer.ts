@@ -2,12 +2,13 @@ import fastify, { FastifyInstance } from "fastify"
 import fastifyPostgres from "fastify-postgres"
 import cookie from "fastify-cookie"
 import fastifyCors from "@fastify/cors";
+import { Pool } from "pg";
 
 import config from "./config"
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
+import emailPlugin from "./plugins/email"
 import { getTestingSession } from "./testHelpers/sessions";
-import { Pool } from "pg";
 
 export function buildServer(pgPool?: Pool): FastifyInstance {
   const server = fastify();
@@ -28,6 +29,8 @@ export function buildServer(pgPool?: Pool): FastifyInstance {
     );
     server.register(fastifyPostgres, config.dbConfig);
   }
+
+  server.register(emailPlugin);
 
   server.register(cookie);
 
