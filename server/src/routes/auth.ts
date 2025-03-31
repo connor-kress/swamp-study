@@ -35,7 +35,7 @@ function setTokenCookies(reply: FastifyReply, data: TokenData) {
     });
 }
 
-function generateNewTokenData(): TokenData {
+export function generateNewTokenData(): TokenData {
   return {
     accessToken: generateToken(),
     refreshToken: generateToken(),

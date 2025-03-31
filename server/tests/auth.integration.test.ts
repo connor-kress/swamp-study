@@ -1,6 +1,8 @@
 import { describe, it, beforeAll, afterAll, expect } from 'vitest';
 import { buildServer } from '../src/buildServer';
 import { createTestDb, TestDb } from '../src/testHelpers/setupDb';
+import { createUserSession, getUserByEmail } from '../src/db/queries';
+import { generateNewTokenData } from '../src/routes/auth';
 
 let server: ReturnType<typeof buildServer>;
 let testDb: TestDb;
@@ -69,7 +71,7 @@ describe("Authentication Integration", () => {
     // Log in to obtain valid cookies
     let setCookies = loginResponse.headers["set-cookie"];
     expect(setCookies).toBeDefined();
-    if (typeof setCookies === "object") {
+    if (Array.isArray(setCookies)) {
       setCookies = setCookies.join("; ")
     }
 
@@ -101,7 +103,7 @@ describe("Authentication Integration", () => {
     expect(loginResponse.statusCode).toBe(200);
     let setCookies = loginResponse.headers["set-cookie"];
     expect(setCookies).toBeDefined();
-    if (typeof setCookies === "object") {
+    if (Array.isArray(setCookies)) {
       setCookies = setCookies.join("; ")
     }
 
@@ -118,5 +120,64 @@ describe("Authentication Integration", () => {
     // Verify that the cookies are cleared
     const clearedCookies = logoutResponse.headers["set-cookie"];
     expect(clearedCookies).toBeDefined();
+  });
+
+  it("should refresh expired access token, ensuring it works", async () => {
+    const name = 'refresh-test';
+    await createTestUser(name);
+    const user = await getUserByEmail(server, `${name}@ufl.edu`);
+    expect(user).toBeDefined();
+    if (!user) return; // for typing
+
+    const tokenData = generateNewTokenData();
+    tokenData.accessExpires = new Date(Date.now() - 60*1000); // expired
+    tokenData.refreshExpires = new Date(Date.now() + 3600*1000); // valid
+
+    // Create user session with expired access token
+    const userSession = await createUserSession(server, user.id, tokenData);
+    expect(userSession.user_id).toBe(user.id);
+
+    const cookieHeader = `accessToken=${tokenData.accessToken}; refreshToken=${tokenData.refreshToken}`;
+
+    // Ensure that access token is indeed expired
+    const verifyExpiredResponse = await server.inject({
+      method: 'GET',
+      url: '/api/auth/verify',
+      headers: { Cookie: cookieHeader },
+    });
+    expect(verifyExpiredResponse.statusCode).toBe(401);
+    const verifyExpiredBody = JSON.parse(verifyExpiredResponse.payload);
+    expect(verifyExpiredBody.error).toBe("Invalid or expired access token.");
+
+    // Refresh the tokens with the refresh token
+    const refreshResponse = await server.inject({
+      method: 'POST',
+      url: '/api/auth/refresh',
+      headers: { Cookie: cookieHeader },
+    });
+    expect(refreshResponse.statusCode).toBe(200);
+    const refreshBody = JSON.parse(refreshResponse.payload);
+    expect(refreshBody.status).toBe("success");
+    expect(refreshBody.data).toBeDefined();
+
+    let newCookies = refreshResponse.headers["set-cookie"];
+    expect(newCookies).toBeDefined();
+    if (Array.isArray(newCookies)) {
+      newCookies = newCookies.join("; ");
+    }
+    // Check if the new tokens are different
+    expect(newCookies).not.toContain(tokenData.accessToken);
+    expect(newCookies).not.toContain(tokenData.refreshToken);
+
+    // Ensure that the new access token is valid
+    const verifyValidResponse = await server.inject({
+      method: 'GET',
+      url: '/api/auth/verify',
+      headers: { Cookie: newCookies },
+    });
+    expect(verifyValidResponse.statusCode).toBe(200);
+    const verifyValidBody = JSON.parse(verifyValidResponse.payload);
+    expect(verifyValidBody.user).toBeDefined();
+    expect(verifyValidBody.user.email).toBe(`${name}@ufl.edu`);
   });
 });
