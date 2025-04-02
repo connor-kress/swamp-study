@@ -7,6 +7,9 @@ import {
   UserSessionSchema,
   SessionWithUser,
   TokenData,
+  NewPendingVerificationInput,
+  PendingVerification,
+  PendingVerificationSchema,
 } from "../types";
 
 export async function getUserById(
@@ -163,7 +166,7 @@ export async function deleteAllUserSessions(
     const { rowCount } = await client.query(
       `DELETE FROM user_sessions WHERE user_id = $1`, [userId]
     );
-    return rowCount !== null ? rowCount : 0;
+    return rowCount ?? 0;
   } catch (error) {
     throw error;
   } finally {
@@ -255,6 +258,68 @@ export async function updateSessionTokens(
     );
     if (rows.length === 0) return null;
     return UserSessionSchema.parse(rows[0]);
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function upsertPendingVerification(
+  server: FastifyInstance,
+  verification: NewPendingVerificationInput,
+): Promise<PendingVerification> {
+  const client = await server.pg.connect();
+  try {
+    const { rows } = await client.query(`
+      INSERT INTO pending_verifications (email, code_hash, expires_at)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (email) DO UPDATE SET
+        code_hash = EXCLUDED.code_hash,
+        expires_at = EXCLUDED.expires_at
+      RETURNING email, code_hash, expires_at, created_at;`,
+      [verification.email, verification.code_hash, verification.expires_at],
+    );
+    return PendingVerificationSchema.parse(rows[0]);
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getPendingVerificationByEmail(
+  server: FastifyInstance,
+  email: string,
+): Promise<PendingVerification | null> {
+  const client = await server.pg.connect();
+  try {
+    const { rows } = await client.query(`
+      SELECT email, code_hash, expires_at, created_at
+      FROM pending_verifications
+      WHERE email = $1;`,
+      [email],
+    );
+
+    if (rows.length === 0) return null;
+    return PendingVerificationSchema.parse(rows[0]);
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteExpiredPendingVerifications(
+  server: FastifyInstance,
+): Promise<number> {
+  const client = await server.pg.connect();
+  try {
+    const { rowCount } = await client.query(`
+      DELETE FROM pending_verifications
+      WHERE expires_at < NOW();
+    `);
+    return rowCount ?? 0;
   } catch (error) {
     throw error;
   } finally {

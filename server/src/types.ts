@@ -48,3 +48,18 @@ export type TokenData = {
   accessExpires: Date,
   refreshExpires: Date,
 };
+
+export const PendingVerificationSchema = z.object({
+  email: z.string(),
+  code_hash: z.string(),
+  expires_at: DateSchema,
+  created_at: DateSchema,
+});
+
+export type PendingVerification = z.infer<typeof PendingVerificationSchema>;
+
+export type NewPendingVerificationInput = {
+  email: string;
+  code_hash: string;
+  expires_at: Date;
+};
