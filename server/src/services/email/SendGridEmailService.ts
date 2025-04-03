@@ -1,7 +1,6 @@
 import { EmailService } from "./EmailService";
 import sgMail from "@sendgrid/mail";
-import config from "../../config"; // Use the default export
-import { User } from "../../types";
+import config from "../../config";
 
 export class SendGridEmailService implements EmailService {
   constructor() {
@@ -12,16 +11,17 @@ export class SendGridEmailService implements EmailService {
   }
 
   async sendVerificationCode(
-    user: User,
+    email: string,
+    name: string,
     code: string,
   ): Promise<void> {
     const msg = {
-      to: user.email,
+      to: email,
       from: config.emailConfig.fromAddress,
       subject: "Your Verification Code",
-      text: `Hi ${user.name},\n\nYour verification code is: ${code}\n\nEnter this code in the app to verify your email address.\n\nIf you didn't request this, please ignore this email.\n\nThanks,\nThe SwampStudy Team\n${config.baseUrl}`, // Add base URL link
+      text: `Hi ${name},\n\nYour verification code is: ${code}\n\nEnter this code in the app to verify your email address.\n\nIf you didn't request this, please ignore this email.\n\nThanks,\nThe SwampStudy Team\n${config.baseUrl}`, // Add base URL link
       html: `
-        <p>Hi ${user.name},</p>
+        <p>Hi ${name},</p>
         <p>Your verification code is: <strong>${code}</strong></p>
         <p>Enter this code in the app to verify your email address.</p>
         <p>If you didn't request this, please ignore this email.</p>
@@ -33,10 +33,10 @@ export class SendGridEmailService implements EmailService {
 
     try {
       await sgMail.send(msg);
-      console.log(`Verification code sent to ${user.email} via SendGrid`);
+      console.log(`Verification code sent to ${email} via SendGrid`);
     } catch (error: any) {
       console.error(
-        `Error sending verification code via SendGrid to ${user.email}:`,
+        `Error sending verification code via SendGrid to ${email}:`,
       );
       if (error.response) {
         console.error(error.response.body);

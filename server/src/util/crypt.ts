@@ -33,3 +33,10 @@ export async function verifyPassword(
 export function generateToken(size = 32): string {
   return crypto.randomBytes(size).toString("hex");
 }
+
+/**
+ * Generates a random, 6 digit, numeric passcode.
+ */
+export function generatePasscode(): string {
+  return crypto.randomInt(100000, 999999).toString();
+}

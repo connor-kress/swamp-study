@@ -1,5 +1,3 @@
-import { User } from "../../types";
-
 /**
  * Interface defining the contract for sending emails.
  */
@@ -12,7 +10,8 @@ export interface EmailService {
    * @returns Promise that resolves when the email is sent or rejects on error.
    */
   sendVerificationCode(
-    user: User,
+    email: string,
+    name: string,
     code: string,
   ): Promise<void>;
 }
