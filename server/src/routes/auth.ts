@@ -6,6 +6,7 @@ import {
 import { z } from "zod";
 
 import {
+  createUser,
   createUserSession,
   deleteAllUserSessions,
   deleteUserSession,
@@ -13,14 +14,16 @@ import {
   getSessionByAccessToken,
   getSessionByRefreshToken,
   getUserByEmail,
+  NewUserInput,
   updateSessionTokens,
+  upsertPendingVerification,
 } from "../db/queries";
-import { generateToken, verifyPassword } from "../util/crypt";
-import { SessionWithUser, TokenData } from "../types";
+import { generatePasscode, generateToken, hashPassword, verifyPassword } from "../util/crypt";
+import { NewPendingVerificationInput, SessionWithUser, TokenData } from "../types";
+import { EmailService } from "../services/email/EmailService";
 
 function setTokenCookies(reply: FastifyReply, data: TokenData) {
-    reply.setCookie("accessToken", data.accessToken, {
-      httpOnly: true,
+    reply.setCookie("accessToken", data.accessToken, { httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
@@ -194,6 +197,47 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
     console.log(`Logout-all successful: ${session.user.email} (${rowCount})`);
     return { status: "success", message: "All sessions have been logged out." };
+  });
+
+  const emailVerificationRequestSchema = z.object({
+    email: z.string().email(),
+    name: z.string(),
+  })
+
+  // POST /auth/request-signup-code - Sends an email verification code.
+  server.post("/request-signup-code", async (request, reply) => {
+    const parsed = emailVerificationRequestSchema.safeParse(request.body);
+    if (!parsed.success) {
+      console.log(parsed.error.flatten());
+      reply.status(400);
+      return { error: parsed.error.flatten() };
+    }
+    const { email, name } = parsed.data;
+
+    // Check if email already in database
+    const user = await getUserByEmail(server, email);
+    if (user) {
+      reply.status(409);
+      return { error: "Email already in use." };
+    }
+
+    // Generate and store passcode
+    const code = generatePasscode();
+    const pendingVerification: NewPendingVerificationInput = {
+      email: email,
+      code_hash: await hashPassword(code),
+      expires_at: new Date(Date.now() + 10*60*1000), // 10 mins
+    };
+    await upsertPendingVerification(server, pendingVerification);
+
+    try {
+      await server.emailService.sendVerificationCode(email, name, code);
+      return { message: "Verification code sent to your email." };
+    } catch (err) {
+      console.error("Failed to send verification code:", err);
+      reply.status(500);
+      return { message: "Failed to send verification code." };
+    }
   });
 
 }
