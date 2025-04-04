@@ -9,8 +9,10 @@ import {
   createUser,
   createUserSession,
   deleteAllUserSessions,
+  deletePendingVerificationByEmail,
   deleteUserSession,
   getPasswordHashByEmail,
+  getPendingVerificationByEmail,
   getSessionByAccessToken,
   getSessionByRefreshToken,
   getUserByEmail,
@@ -20,7 +22,6 @@ import {
 } from "../db/queries";
 import { generatePasscode, generateToken, hashPassword, verifyPassword } from "../util/crypt";
 import { NewPendingVerificationInput, SessionWithUser, TokenData } from "../types";
-import { EmailService } from "../services/email/EmailService";
 
 function setTokenCookies(reply: FastifyReply, data: TokenData) {
     reply.setCookie("accessToken", data.accessToken, { httpOnly: true,
@@ -237,6 +238,64 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       console.error("Failed to send verification code:", err);
       reply.status(500);
       return { message: "Failed to send verification code." };
+    }
+  });
+
+  const RegisterInputSchema = z.object({
+    email: z.string().email(),
+    password: z.string(),
+    name: z.string(),
+    grad_year: z.number(),
+    code: z.string(),
+  });
+
+  server.post("/register", async (request, reply) => {
+    const parsed = RegisterInputSchema.safeParse(request.body);
+    if (!parsed.success) {
+      console.log(parsed.error.flatten());
+      reply.status(400);
+      return { error: parsed.error.flatten() };
+    }
+    const { email, password, name, grad_year, code } = parsed.data;
+
+    const pendingVerification =
+      await getPendingVerificationByEmail(server, email);
+    if (!pendingVerification) {
+        reply.status(400);
+        return { error: "Pending verification not found." };
+    }
+    if (Date.now() > pendingVerification.expires_at.getTime()) {
+        reply.status(400);
+        return { error: "Passcode expired." };
+    }
+    if (!await verifyPassword(code, pendingVerification.code_hash)) {
+        reply.status(400);
+        return { error: "Invalid passcode." };
+    }
+
+    if (!await deletePendingVerificationByEmail(server, email)) {
+      console.log("Unable to delete pending verification");
+    }
+
+    const userInput: NewUserInput = {
+      email, name, grad_year,
+      role: "member",
+      password_hash: await hashPassword(password),
+    };
+
+    try {
+      const newUser = await createUser(server, userInput);
+      reply.status(201);
+      return newUser;
+    } catch (error: any) {
+      if (error?.code === "23505") {
+        console.error("Error creating user: Email already in use");
+        reply.status(409);
+        return { error: "Email already in use." };
+      }
+      console.error("Error creating user:", error);
+      reply.status(500);
+      return { error: "Database error occurred." };
     }
   });
 
