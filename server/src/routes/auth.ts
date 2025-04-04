@@ -249,6 +249,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     code: z.string(),
   });
 
+  // POST /auth/register - Registers a verified account.
   server.post("/register", async (request, reply) => {
     const parsed = RegisterInputSchema.safeParse(request.body);
     if (!parsed.success) {
@@ -285,6 +286,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
     try {
       const newUser = await createUser(server, userInput);
+      console.log(`Registered user: ${newUser.email}`)
       reply.status(201);
       return newUser;
     } catch (error: any) {
