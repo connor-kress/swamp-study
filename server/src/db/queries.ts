@@ -310,6 +310,23 @@ export async function getPendingVerificationByEmail(
   }
 }
 
+export async function deletePendingVerificationByEmail(
+  server: FastifyInstance,
+  email: string,
+): Promise<boolean> {
+  const client = await server.pg.connect();
+  try {
+    const { rowCount } = await client.query(
+      `DELETE FROM pending_verifications WHERE email = $1`, [email]
+    );
+    return rowCount !== null && rowCount > 0;
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function deleteExpiredPendingVerifications(
   server: FastifyInstance,
 ): Promise<number> {
