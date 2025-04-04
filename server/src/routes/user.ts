@@ -54,8 +54,17 @@ const userRoutes: FastifyPluginAsync = async (server) => {
     }
   });
 
-  // POST /user/ - Create a new user (TODO: email auth and admin protection).
+  // POST /user/ - Admin route for creating a new user.
   server.post("/", async (request, reply) => {
+    const session = await verifyAccessToken(request, reply);
+    const user = session?.user
+    if (!user || user.role !== "admin") {
+      if (user) reply.code(401).send({
+        error: "Access denied: admin only.",
+      });
+      console.log("Unauthorized DELETE /user/:id");
+      return;
+    }
     const parsed = CreateUserInputSchema.safeParse(request.body);
     if (!parsed.success) {
       reply.status(400);
