@@ -44,8 +44,6 @@ export default function RegisterScreen() {
         body: JSON.stringify(payload),
       });
 
-      console.log(response.status, response.statusText);
-
       if (!response.ok) {
         const json = await response.json();
         throw new Error(json?.error || "Unknown error");
