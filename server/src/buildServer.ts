@@ -8,7 +8,7 @@ import config from "./config"
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import emailPlugin from "./plugins/email"
-import { getTestingSession } from "./testHelpers/sessions";
+import { getTestingSession } from "../tests/testHelpers/sessions";
 
 export function buildServer(pgPool?: Pool): FastifyInstance {
   const server = fastify();

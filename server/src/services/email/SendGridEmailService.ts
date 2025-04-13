@@ -2,6 +2,11 @@ import { EmailService } from "./EmailService";
 import sgMail from "@sendgrid/mail";
 import config from "../../config";
 
+/**
+ * An implementation of the EmailService using the SendGrid email API.
+ * This is used for both production and development.
+ * SendGrid configurations options are in server/.env.example
+ */
 export class SendGridEmailService implements EmailService {
   constructor() {
     if (!config.emailConfig.sendgridApiKey) {

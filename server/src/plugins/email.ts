@@ -2,7 +2,7 @@ import fp from "fastify-plugin";
 import { FastifyInstance } from "fastify";
 import { EmailService } from "../services/email/EmailService";
 import { SendGridEmailService } from "../services/email/SendGridEmailService";
-// import { MockEmailService } from "../services/email/MockEmailService"; // TODO
+import { MockEmailService } from "../services/email/MockEmailService";
 import config from "../config";
 
 declare module "fastify" {
@@ -16,8 +16,7 @@ async function emailPlugin(fastify: FastifyInstance) {
 
   if (config.nodeEnv === "test") {
     console.log("Using MockEmailService for testing");
-    // emailService = new MockEmailService(); // TODO
-    console.error("MockEmailService not implemented yet");
+    emailService = new MockEmailService();
   } else {
     if (!config.emailConfig.sendgridApiKey) {
       throw new Error(
@@ -31,10 +30,9 @@ async function emailPlugin(fastify: FastifyInstance) {
     }
     console.log("Using SendGridEmailService");
     emailService = new SendGridEmailService();
-    fastify.decorate("emailService", emailService); // here temporarily
   }
 
-  // fastify.decorate("emailService", emailService); // should be here
+  fastify.decorate("emailService", emailService);
 }
 
 export default fp(emailPlugin, {
