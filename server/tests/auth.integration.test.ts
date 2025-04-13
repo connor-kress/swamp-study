@@ -1,6 +1,6 @@
 import { describe, it, beforeAll, afterAll, expect } from 'vitest';
 import { buildServer } from '../src/buildServer';
-import { createTestDb, TestDb } from '../src/testHelpers/setupDb';
+import { createTestDb, TestDb } from './testHelpers/setupDb';
 import { createUserSession, getUserByEmail } from '../src/db/queries';
 import { generateNewTokenData } from '../src/routes/auth';
 

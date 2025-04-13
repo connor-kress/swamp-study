@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { Pool } from "pg";
 
-const schemaPath = path.join(__dirname, "..", "db", "schema.sql");
+const schemaPath = path.join(__dirname, "..", "..", "src", "db", "schema.sql");
 let schemaSql: string;
 try {
   schemaSql = fs.readFileSync(schemaPath, "utf8");
