@@ -54,17 +54,17 @@ const userRoutes: FastifyPluginAsync = async (server) => {
     }
   });
 
-  // POST /user/ - Admin route for creating a new user.
+  // POST /user/ - Create a new user (deprecated).
   server.post("/", async (request, reply) => {
-    const session = await verifyAccessToken(request, reply);
-    const user = session?.user
-    if (!user || user.role !== "admin") {
-      if (user) reply.code(401).send({
-        error: "Access denied: admin only.",
-      });
-      console.log("Unauthorized DELETE /user/:id");
-      return;
-    }
+    // const session = await verifyAccessToken(request, reply);
+    // const user = session?.user
+    // if (!user || user.role !== "admin") {
+    //   if (user) reply.code(401).send({
+    //     error: "Access denied: admin only.",
+    //   });
+    //   console.log("Unauthorized DELETE /user/:id");
+    //   return;
+    // }
     const parsed = CreateUserInputSchema.safeParse(request.body);
     if (!parsed.success) {
       reply.status(400);
