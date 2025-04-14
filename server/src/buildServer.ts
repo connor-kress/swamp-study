@@ -1,4 +1,4 @@
-import fastify, { FastifyInstance } from "fastify"
+import fastify, { FastifyInstance, FastifyRequest } from "fastify"
 import fastifyPostgres from "fastify-postgres"
 import cookie from "fastify-cookie"
 import fastifyCors from "@fastify/cors";
@@ -34,7 +34,7 @@ export function buildServer(pgPool?: Pool): FastifyInstance {
 
   server.register(cookie);
 
-  server.addHook("preHandler", async (request, _reply) => {
+  server.addHook("preHandler", async (request: FastifyRequest, _reply) => {
     if (
       config.nodeEnv === "test" &&
       request.headers["x-test-auth"] === "1"

@@ -5,6 +5,8 @@ export function getTestingSession(
   isAdmin: boolean,
   name?: string,
 ): SessionWithUser {
+  let email: string | undefined;
+  if (name) email = `${name}@ufl.edu`
   return {
     session: {
       id: isAdmin ? 777 : 111,
@@ -18,8 +20,7 @@ export function getTestingSession(
     },
     user: {
       id: userId,
-      email: name ? `${name}@ufl.edu`
-                  : (isAdmin ? "admin@ufl.edu" : "member@ufl.edu"),
+      email: email ?? (isAdmin ? "admin@ufl.edu" : "member@ufl.edu"),
       name: name ?? (isAdmin ? "Testing Admin" : "Testing Member"),
       grad_year: 2029,
       role: isAdmin ? "admin" : "member",

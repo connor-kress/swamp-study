@@ -25,8 +25,6 @@ export async function getUserById(
     );
     if (rows.length === 0) return null;
     return UserSchema.parse(rows[0]);
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -45,8 +43,6 @@ export async function getUserByEmail(
     );
     if (rows.length === 0) return null;
     return UserSchema.parse(rows[0]);
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -69,8 +65,6 @@ export async function createUser(
       [user.email, user.password_hash, user.name, user.grad_year, user.role],
     );
     return UserSchema.parse(rows[0]);
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -86,8 +80,6 @@ export async function deleteUser(
       `DELETE FROM users WHERE id = $1`, [id]
     );
     return rowCount !== null && rowCount > 0;
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -114,8 +106,6 @@ export async function createUserSession(
       ],
     );
     return UserSessionSchema.parse(rows[0]);
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -133,8 +123,6 @@ export async function getPasswordHashByEmail(
     if (rows.length === 0) return null;
     // Validate that password hash is a string
     return z.string().parse(rows[0].password_hash);
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -150,8 +138,6 @@ export async function deleteUserSession(
       `DELETE FROM user_sessions WHERE id = $1`, [id]
     );
     return rowCount !== null && rowCount > 0;
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -167,8 +153,6 @@ export async function deleteAllUserSessions(
       `DELETE FROM user_sessions WHERE user_id = $1`, [userId]
     );
     return rowCount ?? 0;
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -196,8 +180,6 @@ export async function getSessionByAccessToken(
       user: UserSchema.parse(rows[0].user),
       session: UserSessionSchema.parse(rows[0].session),
     };
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -225,8 +207,6 @@ export async function getSessionByRefreshToken(
       user: UserSchema.parse(rows[0].user),
       session: UserSessionSchema.parse(rows[0].session),
     };
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -258,8 +238,6 @@ export async function updateSessionTokens(
     );
     if (rows.length === 0) return null;
     return UserSessionSchema.parse(rows[0]);
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -281,8 +259,6 @@ export async function upsertPendingVerification(
       [verification.email, verification.code_hash, verification.expires_at],
     );
     return PendingVerificationSchema.parse(rows[0]);
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -303,8 +279,6 @@ export async function getPendingVerificationByEmail(
 
     if (rows.length === 0) return null;
     return PendingVerificationSchema.parse(rows[0]);
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -320,8 +294,6 @@ export async function deletePendingVerificationByEmail(
       `DELETE FROM pending_verifications WHERE email = $1`, [email]
     );
     return rowCount !== null && rowCount > 0;
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }
@@ -337,8 +309,6 @@ export async function deleteExpiredPendingVerifications(
       WHERE expires_at < NOW();
     `);
     return rowCount ?? 0;
-  } catch (error) {
-    throw error;
   } finally {
     client.release();
   }

@@ -61,13 +61,14 @@ function getDbConfig(): DBConfig | undefined {
       port: getEnvVarAsInt("DB_PORT", 5432),
     };
   } catch (err: any) {
+    console.warn("Error loading db config:", err?.message);
     return undefined;
   }
 }
 
 const config: Config = {
   baseUrl: getRequiredEnvVar("BASE_URL"),
-  nodeEnv: getOptionalEnvVar("NODE_ENV") || "development",
+  nodeEnv: getOptionalEnvVar("NODE_ENV") ?? "development",
   dbConfig: getDbConfig(),
   emailConfig: {
     fromAddress: getRequiredEnvVar("EMAIL_FROM"),
