@@ -3,6 +3,7 @@ import { SessionWithUser } from "../types";
 export function getTestingSession(
   userId: number,
   isAdmin: boolean,
+  name?: string,
 ): SessionWithUser {
   return {
     session: {
@@ -17,8 +18,9 @@ export function getTestingSession(
     },
     user: {
       id: userId,
-      email: isAdmin ? "admin@ufl.edu" : "member@ufl.edu",
-      name: isAdmin ? "Testing Admin" : "Testing Member",
+      email: name ? `${name}@ufl.edu`
+                  : (isAdmin ? "admin@ufl.edu" : "member@ufl.edu"),
+      name: name ?? (isAdmin ? "Testing Admin" : "Testing Member"),
       grad_year: 2029,
       role: isAdmin ? "admin" : "member",
       created_at: new Date(Date.now()),

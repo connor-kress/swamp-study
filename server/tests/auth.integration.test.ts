@@ -1,11 +1,17 @@
-import { describe, it, beforeAll, afterAll, expect } from 'vitest';
-import { buildServer } from '../src/buildServer';
-import { createTestDb, TestDb } from './testHelpers/setupDb';
-import { createUserSession, getUserByEmail } from '../src/db/queries';
-import { generateNewTokenData } from '../src/routes/auth';
+import { describe, it, beforeAll, beforeEach, afterAll, expect } from "vitest";
+import { buildServer } from "../src/buildServer";
+import { createTestDb, TestDb } from "./testHelpers/setupDb";
+import {
+  createUserSession,
+  getPendingVerificationByEmail,
+  getUserByEmail,
+} from "../src/db/queries";
+import { generateNewTokenData } from "../src/routes/auth";
+import { MockEmailService } from "../src/services/email/MockEmailService";
 
 let server: ReturnType<typeof buildServer>;
 let testDb: TestDb;
+let mockEmailService: MockEmailService;
 
 async function createTestUser(name: string) {
   const createResponse = await server.inject({
@@ -23,13 +29,20 @@ async function createTestUser(name: string) {
 }
 
 beforeAll(async () => {
+  process.env.NODE_ENV = "test";
   testDb = createTestDb();
   server = buildServer(testDb.pool);
   await server.ready();
+  mockEmailService = server.emailService as MockEmailService;
+});
+
+beforeEach(() => {
+  mockEmailService.clearSentEmails();
 });
 
 afterAll(async () => {
   await server.close();
+  await testDb.pool.end();
 });
 
 describe("Authentication Integration", () => {
@@ -123,7 +136,7 @@ describe("Authentication Integration", () => {
   });
 
   it("should refresh expired access token, ensuring it works", async () => {
-    const name = 'refresh-test';
+    const name = "refresh-test";
     await createTestUser(name);
     const user = await getUserByEmail(server, `${name}@ufl.edu`);
     expect(user).toBeDefined();
@@ -141,8 +154,8 @@ describe("Authentication Integration", () => {
 
     // Ensure that access token is indeed expired
     const verifyExpiredResponse = await server.inject({
-      method: 'GET',
-      url: '/api/auth/verify',
+      method: "GET",
+      url: "/api/auth/verify",
       headers: { Cookie: cookieHeader },
     });
     expect(verifyExpiredResponse.statusCode).toBe(401);
@@ -151,8 +164,8 @@ describe("Authentication Integration", () => {
 
     // Refresh the tokens with the refresh token
     const refreshResponse = await server.inject({
-      method: 'POST',
-      url: '/api/auth/refresh',
+      method: "POST",
+      url: "/api/auth/refresh",
       headers: { Cookie: cookieHeader },
     });
     expect(refreshResponse.statusCode).toBe(200);
@@ -171,13 +184,220 @@ describe("Authentication Integration", () => {
 
     // Ensure that the new access token is valid
     const verifyValidResponse = await server.inject({
-      method: 'GET',
-      url: '/api/auth/verify',
+      method: "GET",
+      url: "/api/auth/verify",
       headers: { Cookie: newCookies },
     });
     expect(verifyValidResponse.statusCode).toBe(200);
     const verifyValidBody = JSON.parse(verifyValidResponse.payload);
     expect(verifyValidBody.user).toBeDefined();
     expect(verifyValidBody.user.email).toBe(`${name}@ufl.edu`);
+  });
+});
+
+describe("Registration Flow Integration", () => {
+  const testUserEmail = "register.test@ufl.edu";
+  const testUserName = "Reg Tester";
+  const testUserPassword = "passwordStrong!";
+  const testUserGradYear = 2028;
+
+  it("should request signup code successfully for a new email", async () => {
+    const response = await server.inject({
+      method: "POST",
+      url: "/api/auth/request-signup-code",
+      payload: {
+        email: testUserEmail,
+        name: testUserName,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.payload)).toEqual({
+      message: "Verification code sent to your email.",
+    });
+
+    // Check mock email service
+    expect(mockEmailService.sentEmails.length).toBe(1);
+    const sentData = mockEmailService.getLastSentEmail();
+    expect(sentData?.email).toBe(testUserEmail);
+    expect(sentData?.name).toBe(testUserName);
+    expect(sentData?.code).toMatch(/^\d{6}$/); // Assumes 6-digit code
+
+    // Check database state
+    const pending = await getPendingVerificationByEmail(server, testUserEmail);
+    expect(pending).not.toBeNull();
+    expect(pending?.email).toBe(testUserEmail);
+    expect(pending?.expires_at.getTime()).toBeGreaterThan(Date.now());
+  });
+
+  it("should fail to request signup code if email is already registered", async () => {
+    // 1. Create user first (using admin helper or direct insert)
+    const name = "existing.user"
+    const existingEmail = `${name}@ufl.edu`;
+    await createTestUser(name);
+
+    // 2. Attempt to request code for the same email
+    const response = await server.inject({
+      method: "POST",
+      url: "/api/auth/request-signup-code",
+      payload: {
+        email: existingEmail,
+        name: "Another Name",
+      },
+    });
+
+    expect(response.statusCode).toBe(409); // conflict
+    expect(JSON.parse(response.payload)).toEqual({
+      error: "Email already in use.",
+    });
+
+    // Check mock email service was NOT called
+    expect(mockEmailService.sentEmails.length).toBe(0);
+  });
+
+  it("should register successfully with a valid code", async () => {
+    // 1. Request code first
+    const requestCodeResponse = await server.inject({
+      method: "POST",
+      url: "/api/auth/request-signup-code",
+      payload: {
+        email: "register.success@ufl.edu",
+        name: "Success User",
+      },
+    });
+    expect(requestCodeResponse.statusCode).toBe(200);
+    const code = mockEmailService.findCodeForEmail(
+      "register.success@ufl.edu",
+    );
+    expect(code).toBeDefined();
+
+    // 2. Register using the code
+    const registerResponse = await server.inject({
+      method: "POST",
+      url: "/api/auth/register",
+      payload: {
+        email: "register.success@ufl.edu",
+        name: "Success User",
+        password: testUserPassword,
+        grad_year: testUserGradYear,
+        code: code,
+      },
+    });
+
+    expect(registerResponse.statusCode).toBe(201);
+    const registerBody = JSON.parse(registerResponse.payload);
+    expect(registerBody.email).toBe("register.success@ufl.edu");
+    expect(registerBody.name).toBe("Success User");
+    expect(registerBody.role).toBe("member");
+    expect(registerBody.password_hash).toBeUndefined(); // security!
+
+    // 3. Verify user exists in DB
+    const dbUser = await getUserByEmail(
+      server, "register.success@ufl.edu",
+    );
+    expect(dbUser).toBeDefined();
+    expect(dbUser?.name).toBe("Success User");
+
+    // 4. Verify pending verification was deleted (important!)
+    const pending = await getPendingVerificationByEmail(
+      server, "register.success@ufl.edu",
+    );
+    expect(pending).toBeNull();
+  });
+
+  it("should fail registration if pending verification is not found", async () => {
+    // Never requested a code
+    const response = await server.inject({
+      method: "POST",
+      url: "/api/auth/register",
+      payload: {
+        email: "not.requested@ufl.edu",
+        name: "No Request",
+        password: testUserPassword,
+        grad_year: testUserGradYear,
+        code: "123456", // arbitrary code
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.payload)).toEqual({
+      error: "Pending verification not found.",
+    });
+  });
+
+  it("should fail registration with an invalid code", async () => {
+    // 1. Request code
+    const email = "invalid.code@ufl.edu";
+    await server.inject({
+      method: "POST",
+      url: "/api/auth/request-signup-code",
+      payload: { email: email, name: "Invalid Coder" },
+    });
+    const correctCode = mockEmailService.findCodeForEmail(email);
+    expect(correctCode).toBeDefined();
+
+    // 2. Attempt registration with wrong code
+    const response = await server.inject({
+      method: "POST",
+      url: "/api/auth/register",
+      payload: {
+        email: email,
+        name: "Invalid Code Guy",
+        password: testUserPassword,
+        grad_year: testUserGradYear,
+        code: "000000", // wrong code
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.payload)).toEqual({
+      error: "Invalid passcode.",
+    });
+
+    // Pending verification still exists
+    const pending = await getPendingVerificationByEmail(server, email);
+    expect(pending).not.toBeNull();
+  });
+
+  it("should fail registration with an expired code", async () => {
+    const email = "expired.code@ufl.edu";
+    await server.inject({
+      method: "POST",
+      url: "/api/auth/request-signup-code",
+      payload: { email: email, name: "Expired Code Guy" },
+    });
+    const code = mockEmailService.findCodeForEmail(email);
+    expect(code).toBeDefined();
+
+    // 2. Manually expire the code in the database
+    const client = await testDb.pool.connect();
+    try {
+      await client.query(`
+        UPDATE pending_verifications
+        SET expires_at = NOW() - interval '1 second'
+        WHERE email = $1`,
+        [email],
+      );
+    } finally {
+      client.release();
+    }
+
+    // 3. Attempt registration
+    const response = await server.inject({
+      method: "POST",
+      url: "/api/auth/register",
+      payload: {
+        email: email,
+        name: "Expired Code Guy",
+        password: testUserPassword,
+        grad_year: testUserGradYear,
+        code: code, // correct, but expired
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.payload)).toEqual({
+      error: "Passcode expired.",
+    });
   });
 });
