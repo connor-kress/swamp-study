@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "build/index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "start": "node build/index.js",
     "dev": "npx nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" --transpile-only src/index.ts",
     "test": "npx vitest"
