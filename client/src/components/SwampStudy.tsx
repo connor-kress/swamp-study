@@ -1,10 +1,9 @@
 // The SwampStudy logo text
-export default function SwampStudy() {
+export default function SwampStudy({ className = "" }: { className?: string; }) {
   return (
-    <span>
-      <span style={{color: "#0021A5", fontWeight: "bold"}}>Swamp</span>
-      <span style={{color: "#FA4616", fontWeight: "bold"}}>Study</span>
+    <span className={`font-bold ${className}`}>
+      <span className="text-blue-600 dark:text-blue-400">Swamp</span>
+      <span className="text-red-500 dark:text-red-400">Study</span>
     </span>
   );
 }
-

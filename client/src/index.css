@@ -1,13 +1,24 @@
 @import "tailwindcss";
 
 :root {
+  /* Light mode variables */
+  --color-background: #ffffff;
+  --color-foreground: #213547;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-input-background: #ffffff;
+  --color-error: #dc2626;
+  --color-success: #16a34a;
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+
+  background-color: var(--color-background);
+  color: var(--color-foreground);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,15 +26,44 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: light) {
+/* Dark mode variables */
+@media (prefers-color-scheme: dark) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+    --color-background: #0f172a;
+    --color-foreground: #f1f5f9;
+    --color-primary: #3b82f6;
+    --color-primary-hover: #60a5fa;
+    --color-muted: #94a3b8;
+    --color-border: #334155;
+    --color-input-background: #1e293b;
+    --color-error: #ef4444;
+    --color-success: #22c55e;
   }
 }
+
+/* Base styles */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+/* Form elements */
+input,
+select,
+textarea {
+  background-color: var(--color-input-background);
+  border-color: var(--color-border);
+  color: var(--color-foreground);
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  transition: color 0.15s ease-in-out;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Update your form component with these dark mode classes */
