@@ -28,17 +28,34 @@ export default function LogoutButton() {
   }
 
   return (
-    <div>
-      <label>
+    <div className="flex flex-col items-end gap-3">
+      <label className="flex items-center gap-2 text-sm text-gray-600
+                       dark:text-gray-400 cursor-pointer">
         <input
           type="checkbox"
+          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600
+                     text-blue-600 focus:ring-blue-500
+                     dark:focus:ring-blue-400 dark:bg-gray-700
+                     cursor-pointer"
           checked={logoutAll}
           onChange={() => setLogoutAll(prev => !prev)}
         />
         Log out of all sessions
       </label>
-      <br />
-      <button onClick={handleLogout} type="button">
+
+      <button
+        onClick={handleLogout}
+        type="button"
+        className="px-4 py-2 rounded-lg text-sm font-medium
+                   text-red-600 dark:text-red-400
+                   border border-red-200 dark:border-red-900
+                   hover:bg-red-50 dark:hover:bg-red-900/30
+                   hover:border-red-300 dark:hover:border-red-800
+                   focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400
+                   focus:outline-none
+                   cursor-pointer
+                   transition-all"
+      >
         Logout
       </button>
     </div>
