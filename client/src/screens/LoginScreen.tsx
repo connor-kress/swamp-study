@@ -1,9 +1,9 @@
 import React, { FormEvent, useEffect, useState } from "react";
-import viewIcon from "../assets/view.png";
-import hideIcon from "../assets/hide.png";
 import { validateEmailDomain } from "../util/validate";
 import { Link, NavigateFunction, useNavigate } from "react-router";
 import { useAuthFetch } from "../hooks/useAuthFetch";
+import Button from "../components/Button";
+import FormInput from "../components/FormInput";
 
 type LoginCredentials = {
   email: string;
@@ -116,93 +116,43 @@ export default function LoginScreen() {
 
       <form className="w-full space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-4">
-          <label className="block">
-            <div className="relative">
-              <input
-                className="w-full px-4 py-2.5 rounded-lg
-                           border border-gray-300 dark:border-gray-600
-                           bg-white dark:bg-gray-800
-                           text-gray-900 dark:text-gray-100
-                           placeholder:text-gray-500
-                           dark:placeholder:text-gray-400
-                           focus:outline-none focus:ring-2 focus:ring-blue-500
-                           focus:border-transparent
-                           dark:focus:ring-blue-400
-                           transition"
-                type="text"
-                id="email"
-                name="email"
-                placeholder="UF email"
-                value={formData.email}
-                minLength={10}
-                onChange={handleInputChange}
-                onBlur={validateEmailDomain}
-                onInput={validateEmailDomain}
-                required
-              />
-            </div>
-          </label>
+          <FormInput
+            type="email"
+            id="email"
+            name="email"
+            placeholder="UF email"
+            value={formData.email}
+            onChange={handleInputChange}
+            minLength={10}
+            onBlur={validateEmailDomain}
+            onInput={validateEmailDomain}
+            required
+          />
 
-          <label className="block">
-            <div className="relative">
-              <input
-                className="w-full px-4 py-2.5 rounded-lg
-                           border border-gray-300 dark:border-gray-600
-                           bg-white dark:bg-gray-800
-                           text-gray-900 dark:text-gray-100
-                           placeholder:text-gray-500
-                           dark:placeholder:text-gray-400
-                           focus:outline-none focus:ring-2 focus:ring-blue-500
-                           focus:border-transparent
-                           dark:focus:ring-blue-400
-                           transition"
-                type={passwordVisible ? "text" : "password"}
-                id="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                minLength={5}
-                onChange={handleInputChange}
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setPasswordVisible((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2
-                           p-1.5 rounded-md
-                           hover:bg-gray-100 dark:hover:bg-gray-700
-                           focus:outline-none focus:ring-2 focus:ring-blue-500
-                           dark:focus:ring-blue-400
-                           transition"
-                aria-label={passwordVisible ? "Hide password" : "Show password"}
-                aria-pressed={passwordVisible}
-                title={passwordVisible ? "Hide password" : "Show password"}
-              >
-                <img
-                  src={passwordVisible ? viewIcon : hideIcon}
-                  alt=""
-                  className="w-5 h-5 dark:invert"
-                />
-              </button>
-            </div>
-          </label>
+          <FormInput
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleInputChange}
+            minLength={5}
+            required
+            passwordToggle
+            passwordVisible={passwordVisible}
+            onPasswordToggle={() => setPasswordVisible(prev => !prev)}
+          />
         </div>
 
-        <button
+        <Button
           type="submit"
-          className="w-full px-4 py-2.5 rounded-lg
-                     bg-blue-600 dark:bg-blue-500
-                     text-white font-medium
-                     hover:bg-blue-700 dark:hover:bg-blue-600
-                     focus:outline-none focus:ring-2
-                     focus:ring-blue-500 dark:focus:ring-blue-400
-                     focus:ring-offset-2 dark:focus:ring-offset-gray-800
-                     disabled:opacity-60 disabled:cursor-not-allowed
-                     transition"
+          variant="primary"
+          fullWidth
+          isLoading={isLoading}
           disabled={isLoading}
         >
-          {isLoading ? "Loading..." : "Log In"}
-        </button>
+          Log In
+        </Button>
 
         <p className="text-center text-sm text-gray-600 dark:text-gray-400">
           New here?{" "}

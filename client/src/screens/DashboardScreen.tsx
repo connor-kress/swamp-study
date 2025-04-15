@@ -1,6 +1,7 @@
+import { Link } from "react-router";
+import Button from "../components/Button";
 import LogoutButton from "../components/LogoutButton";
 import SwampStudy from "../components/SwampStudy";
-import { Link } from "react-router";
 
 export default function DashboardScreen() {
   // Redirect to login screen when signed out
@@ -16,28 +17,8 @@ export default function DashboardScreen() {
 
       {/* Main Actions */}
       <div className="flex gap-4 mb-12">
-        <Link to="/new-group">
-          <button className="px-6 py-3 rounded-lg text-white
-                             bg-blue-600 hover:bg-blue-700
-                             dark:bg-blue-500 dark:hover:bg-blue-600
-                             focus:outline-none focus:ring-2 focus:ring-blue-500
-                             focus:ring-offset-2 dark:focus:ring-offset-gray-800
-                             font-medium transition">
-            Create a Group
-          </button>
-        </Link>
-
-        <Link to="/find-group">
-          <button className="px-6 py-3 rounded-lg bg-white dark:bg-gray-800
-                             border border-gray-300 dark:border-gray-600
-                             text-gray-900 dark:text-gray-100
-                             hover:bg-gray-50 dark:hover:bg-gray-700
-                             focus:outline-none focus:ring-2 focus:ring-blue-500
-                             focus:ring-offset-2 dark:focus:ring-offset-gray-800
-                             font-medium transition">
-            Join a Group
-          </button>
-        </Link>
+        <Button to="/new-group" variant="primary">Create a Group</Button>
+        <Button to="/find-group" variant="secondary">Join a Group</Button>
       </div>
 
       {/* My Groups Section */}
