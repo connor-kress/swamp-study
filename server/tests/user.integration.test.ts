@@ -1,6 +1,6 @@
 import { describe, it, beforeAll, afterAll, expect } from 'vitest';
 import { buildServer } from '../src/buildServer';
-import { createTestDb, TestDb } from './testHelpers/setupDb';
+import { createTestDb, TestDb } from "../src/testHelpers/setupDb";
 
 let server: ReturnType<typeof buildServer>;
 let testDb: TestDb;

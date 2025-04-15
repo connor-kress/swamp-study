@@ -1,6 +1,6 @@
 import { describe, it, beforeAll, beforeEach, afterAll, expect } from "vitest";
 import { buildServer } from "../src/buildServer";
-import { createTestDb, TestDb } from "./testHelpers/setupDb";
+import { createTestDb, TestDb } from "../src/testHelpers/setupDb";
 import {
   createUserSession,
   getPendingVerificationByEmail,
