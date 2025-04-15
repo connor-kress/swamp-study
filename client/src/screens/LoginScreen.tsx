@@ -80,7 +80,6 @@ export default function LoginScreen() {
 
       if (!response.ok) {
         console.log("No valid session found.");
-        // TODO: try refresh token
         return;
       }
 
@@ -169,4 +168,3 @@ export default function LoginScreen() {
     </div>
   );
 }
-

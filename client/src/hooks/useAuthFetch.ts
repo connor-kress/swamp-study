@@ -21,7 +21,7 @@ export function useAuthFetch() {
       });
 
       if (!refreshResponse.ok) {
-        if (redirectOnFail) {
+        if (redirectOnFail && location.pathname !== "/login") {
           navigate("/login");
         }
         const data = await refreshResponse.json();
