@@ -97,64 +97,124 @@ export default function LoginScreen() {
   }, [navigate]);
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h1>Login</h1>
-      <p>Enter your UF email and password to login</p>
-      {error && <p style={{ "color": "red" }}>{error}</p>}
-      <form
-        style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
-        onSubmit={handleSubmit}
-      >
-        <label>
-          <input
-            style={{ width: "175px" }}
-            type="text"
-            id="email"
-            name="email"
-            placeholder="UF email"
-            value={formData.email}
-            minLength={10}
-            onChange={handleInputChange}
-            onBlur={validateEmailDomain}
-            onInput={validateEmailDomain}
-            required
-          />
-        </label>
-        <br/>
-        <label style={{ paddingLeft: "20px" }}>
-          <input
-            style={{ width: "175px" }}
-            type={passwordVisible ? "text" : "password"}
-            id="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            minLength={5}
-            onChange={handleInputChange}
-            required
-          />
-        <img
-          src={passwordVisible ? viewIcon : hideIcon}
-          onClick={() => setPasswordVisible(prev => !prev)}
-          alt={passwordVisible ? "Hide Password" : "View Password"}
-          style={{
-            cursor: "pointer",
-            width: "20px",
-            height: "20px",
-            position: "relative",
-            top: "5px",
-            left: "-25px"
-          }}
-        />
-        </label>
-        <br/>
-        <button type="submit" style={{ backgroundColor: "#C2D5C8", color: "black", padding: "10px 20px", marginTop: "10px", borderRadius: "10px", cursor: "pointer", boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.3)" }}>
+    <div className="flex flex-col items-center gap-6 px-6 py-8 max-w-md mx-auto">
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight dark:text-gray-50">
+          Login
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Enter your UF email and password to login
+        </p>
+      </div>
+
+      {error && (
+        <div className="w-full p-3 rounded-lg bg-red-50 dark:bg-red-900/30
+                        text-red-600 dark:text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
+      <form className="w-full space-y-4" onSubmit={handleSubmit}>
+        <div className="space-y-4">
+          <label className="block">
+            <div className="relative">
+              <input
+                className="w-full px-4 py-2.5 rounded-lg
+                           border border-gray-300 dark:border-gray-600
+                           bg-white dark:bg-gray-800
+                           text-gray-900 dark:text-gray-100
+                           placeholder:text-gray-500
+                           dark:placeholder:text-gray-400
+                           focus:outline-none focus:ring-2 focus:ring-blue-500
+                           focus:border-transparent
+                           dark:focus:ring-blue-400
+                           transition"
+                type="text"
+                id="email"
+                name="email"
+                placeholder="UF email"
+                value={formData.email}
+                minLength={10}
+                onChange={handleInputChange}
+                onBlur={validateEmailDomain}
+                onInput={validateEmailDomain}
+                required
+              />
+            </div>
+          </label>
+
+          <label className="block">
+            <div className="relative">
+              <input
+                className="w-full px-4 py-2.5 rounded-lg
+                           border border-gray-300 dark:border-gray-600
+                           bg-white dark:bg-gray-800
+                           text-gray-900 dark:text-gray-100
+                           placeholder:text-gray-500
+                           dark:placeholder:text-gray-400
+                           focus:outline-none focus:ring-2 focus:ring-blue-500
+                           focus:border-transparent
+                           dark:focus:ring-blue-400
+                           transition"
+                type={passwordVisible ? "text" : "password"}
+                id="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                minLength={5}
+                onChange={handleInputChange}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setPasswordVisible((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2
+                           p-1.5 rounded-md
+                           hover:bg-gray-100 dark:hover:bg-gray-700
+                           focus:outline-none focus:ring-2 focus:ring-blue-500
+                           dark:focus:ring-blue-400
+                           transition"
+                aria-label={passwordVisible ? "Hide password" : "Show password"}
+                aria-pressed={passwordVisible}
+                title={passwordVisible ? "Hide password" : "Show password"}
+              >
+                <img
+                  src={passwordVisible ? viewIcon : hideIcon}
+                  alt=""
+                  className="w-5 h-5 dark:invert"
+                />
+              </button>
+            </div>
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          className="w-full px-4 py-2.5 rounded-lg
+                     bg-blue-600 dark:bg-blue-500
+                     text-white font-medium
+                     hover:bg-blue-700 dark:hover:bg-blue-600
+                     focus:outline-none focus:ring-2
+                     focus:ring-blue-500 dark:focus:ring-blue-400
+                     focus:ring-offset-2 dark:focus:ring-offset-gray-800
+                     disabled:opacity-60 disabled:cursor-not-allowed
+                     transition"
+          disabled={isLoading}
+        >
           {isLoading ? "Loading..." : "Log In"}
         </button>
-        <br/>
-        <Link to="/register" style={{ color: "black" }}>
-          New here? Sign up here!
-        </Link>
+
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+          New here?{" "}
+          <Link
+            to="/register"
+            className="font-medium text-blue-600 dark:text-blue-400
+                       hover:text-blue-500 dark:hover:text-blue-300
+                       transition"
+          >
+            Sign up here!
+          </Link>
+        </p>
       </form>
     </div>
   );
