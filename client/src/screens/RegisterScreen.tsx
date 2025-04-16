@@ -1,10 +1,11 @@
 import { FormEvent, useState } from "react";
-import { validateEmailDomain } from "../util/validate";
+import { validateEmailDomain, validateVerificationCode } from "../util/validate";
 import { Link, useNavigate } from "react-router";
 import { attemptLogin } from "./LoginScreen";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
 import SwampStudy from "../components/SwampStudy";
+import Modal from "../components/Modal";
 
 export default function RegisterScreen() {
   const navigate = useNavigate();
@@ -18,25 +19,66 @@ export default function RegisterScreen() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationMessage, setVerificationMessage] = useState("");
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
     setFormData(prevData => ({ ...prevData, [name]: value }));
   }
 
+  async function handleRequestVerification() {
+    console.log("Requesting verification...");
+    setError("");
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/auth/request-signup-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          name: `${formData.firstName} ${formData.lastName}`,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send verification code");
+      }
+      setVerificationMessage(
+        "We've sent a verification code to your email. Please check your inbox and spam folder. (This may take a minute.)"
+        // + ` [${data.message}]` // for testing
+      );
+      setShowVerificationModal(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send verification code");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!showVerificationModal) {
+      handleRequestVerification();
+      return;
+    }
+
     setError("");
     setIsLoading(true);
     const payload = {
       name: `${formData.firstName} ${formData.lastName}`,
-      grad_year: Number(formData.gradYear),  // will not be invalid
+      grad_year: Number(formData.gradYear),
       email: formData.email,
       password: formData.password,
+      code: verificationCode,
     };
-    console.log("Payload:", payload);
+
     try {
-      const response = await fetch("/api/user", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,20 +93,19 @@ export default function RegisterScreen() {
 
       const data = await response.json();
       console.log("User registered successfully:", data);
-      // navigate("/login");
+
+      // Attempt login after successful registration
+      const credentials = {
+        email: formData.email,
+        password: formData.password,
+      };
+      attemptLogin(credentials, navigate, setError, setIsLoading);
     } catch (err) {
       console.error("Error registering user:", err);
-      setError(err instanceof Error ? err.message : "Login failed");
-      return;
+      setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
       setIsLoading(false);
     }
-    const credentials = {
-      email: formData.email,
-      password: formData.password,
-    };
-    console.log("Login credentials:", credentials);
-    attemptLogin(credentials, navigate, setError, setIsLoading);
   }
 
   return (
@@ -177,6 +218,80 @@ export default function RegisterScreen() {
           </Link>
         </p>
       </form>
+
+      <Modal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        closeOnBackdropClick={false}
+      >
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold dark:text-gray-50">
+              Email Verification
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              {verificationMessage} Go to{" "}
+              <a href="https://outlook.office.com/mail/" target="_blank">
+                Outlook Mail
+              </a>.
+            </p>
+            {error && (
+              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30
+                            text-red-600 dark:text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+            <FormInput
+              type="text"
+              id="verificationCode"
+              name="verificationCode"
+              placeholder="Enter 6-digit code"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              onBlur={validateVerificationCode}
+              onInput={validateVerificationCode}
+              pattern="[0-9]{6}"
+              maxLength={6}
+              minLength={6}
+              required
+            />
+            <div className="flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  if (confirm("Are you sure? You'll need to start over.")) {
+                    setShowVerificationModal(false);
+                    setVerificationCode("");
+                    setVerificationMessage("");
+                  }
+                }}
+                className="!bg-red-100 !text-red-700 hover:!bg-red-200
+                           dark:!bg-red-900/30 dark:!text-red-400
+                           dark:hover:!bg-red-900/50"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => handleRequestVerification()}
+                disabled={isLoading}
+              >
+                Resend Code
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                isLoading={isLoading}
+                disabled={isLoading || verificationCode.length !== 6}
+              >
+                Verify & Register
+              </Button>
+            </div>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
