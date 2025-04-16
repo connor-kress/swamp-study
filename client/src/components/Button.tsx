@@ -5,7 +5,7 @@ interface ButtonProps {
   variant?: "primary" | "secondary";
   type?: "button" | "submit" | "reset";
   to?: string;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   disabled?: boolean;
   fullWidth?: boolean;
   isLoading?: boolean;

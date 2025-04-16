@@ -15,6 +15,7 @@ interface FormInputProps {
   required?: boolean;
   onBlur?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onInput?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  pattern?: string;
   // For password toggle functionality
   passwordToggle?: boolean;
   passwordVisible?: boolean;
@@ -35,6 +36,7 @@ export default function FormInput({
   required = true, // default required
   onBlur,
   onInput,
+  pattern,
   passwordToggle = false,
   passwordVisible = false,
   onPasswordToggle
@@ -66,6 +68,7 @@ export default function FormInput({
       required={required}
       onBlur={onBlur}
       onInput={onInput}
+      pattern={pattern}
     />
   );
 
