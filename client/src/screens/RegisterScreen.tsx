@@ -18,7 +18,9 @@ export default function RegisterScreen() {
   });
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState("");
+  const [verificationError, setVerificationError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerificationLoading, setIsVerificationLoading] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationMessage, setVerificationMessage] = useState("");
@@ -31,7 +33,9 @@ export default function RegisterScreen() {
   async function handleRequestVerification() {
     console.log("Requesting verification...");
     setError("");
+    setVerificationError("");
     setIsLoading(true);
+    setVerificationCode("");
     try {
       const response = await fetch("/api/auth/request-signup-code", {
         method: "POST",
@@ -49,14 +53,17 @@ export default function RegisterScreen() {
         throw new Error(data.error || "Failed to send verification code");
       }
       setVerificationMessage(
-        "We've sent a verification code to your email. Please check your inbox and spam folder. (This may take a minute.)"
+        "We've sent a verification code to your email. Please check your inbox and junk folder. (This may take a minute.)"
         // + ` [${data.message}]` // for testing
       );
       setShowVerificationModal(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send verification code");
+      setError(
+        err instanceof Error ? err.message : "Failed to send verification code"
+      );
     } finally {
       setIsLoading(false);
+      setIsVerificationLoading(false);
     }
   }
 
@@ -67,8 +74,8 @@ export default function RegisterScreen() {
       return;
     }
 
-    setError("");
-    setIsLoading(true);
+    setVerificationError("");
+    setIsVerificationLoading(true);
     const payload = {
       name: `${formData.firstName} ${formData.lastName}`,
       grad_year: Number(formData.gradYear),
@@ -101,10 +108,12 @@ export default function RegisterScreen() {
       };
       attemptLogin(credentials, navigate, setError, setIsLoading);
     } catch (err) {
-      console.error("Error registering user:", err);
-      setError(err instanceof Error ? err.message : "Registration failed");
+      console.warn("Error registering user:", err);
+      setVerificationError(
+        err instanceof Error ? err.message : "Registration failed"
+      );
     } finally {
-      setIsLoading(false);
+      setIsVerificationLoading(false);
     }
   }
 
@@ -235,10 +244,10 @@ export default function RegisterScreen() {
                 Outlook Mail
               </a>.
             </p>
-            {error && (
+            {verificationError && (
               <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30
                             text-red-600 dark:text-red-400 text-sm">
-                {error}
+                {verificationError}
               </div>
             )}
             <FormInput
@@ -276,15 +285,15 @@ export default function RegisterScreen() {
                 type="button"
                 variant="secondary"
                 onClick={() => handleRequestVerification()}
-                disabled={isLoading}
+                disabled={isVerificationLoading}
               >
                 Resend Code
               </Button>
               <Button
                 type="submit"
                 variant="primary"
-                isLoading={isLoading}
-                disabled={isLoading || verificationCode.length !== 6}
+                isLoading={isVerificationLoading}
+                disabled={isVerificationLoading || verificationCode.length !== 6}
               >
                 Verify & Register
               </Button>
