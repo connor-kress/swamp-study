@@ -57,6 +57,7 @@ export default function RegisterScreen() {
     setIsLoading(true);
     setIsResendLoading(true);
     setVerificationCode("");
+    const modalOpen = showVerificationModal;
     try {
       const response = await fetch("/api/auth/request-signup-code", {
         method: "POST",
@@ -80,9 +81,13 @@ export default function RegisterScreen() {
       setShowVerificationModal(true);
       setResendTimeout(60);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to send verification code"
-      );
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to send verification code";
+      if (modalOpen) {
+        setVerificationError(errorMsg);
+      } else {
+        setError(errorMsg);
+      }
     } finally {
       setIsLoading(false);
       setIsVerificationLoading(false);
