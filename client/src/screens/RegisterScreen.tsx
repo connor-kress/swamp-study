@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { validateEmailDomain, validateVerificationCode } from "../util/validate";
 import { Link, useNavigate } from "react-router";
 import { attemptLogin } from "./LoginScreen";
@@ -6,6 +6,14 @@ import Button from "../components/Button";
 import FormInput from "../components/FormInput";
 import SwampStudy from "../components/SwampStudy";
 import Modal from "../components/Modal";
+
+
+function formatTimeRemaining(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
 
 export default function RegisterScreen() {
   const navigate = useNavigate();
@@ -21,9 +29,21 @@ export default function RegisterScreen() {
   const [verificationError, setVerificationError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVerificationLoading, setIsVerificationLoading] = useState(false);
+  const [isResendLoading, setIsResendLoading] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationMessage, setVerificationMessage] = useState("");
+  const [resendTimeout, setResendTimeout] = useState(0); // seconds remaining
+
+  // Function to handle countdown
+  useEffect(() => {
+    if (resendTimeout > 0) {
+      const timer = setInterval(() => {
+        setResendTimeout(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [resendTimeout]);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -35,6 +55,7 @@ export default function RegisterScreen() {
     setError("");
     setVerificationError("");
     setIsLoading(true);
+    setIsResendLoading(true);
     setVerificationCode("");
     try {
       const response = await fetch("/api/auth/request-signup-code", {
@@ -57,6 +78,7 @@ export default function RegisterScreen() {
         // + ` [${data.message}]` // for testing
       );
       setShowVerificationModal(true);
+      setResendTimeout(60);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to send verification code"
@@ -64,6 +86,7 @@ export default function RegisterScreen() {
     } finally {
       setIsLoading(false);
       setIsVerificationLoading(false);
+      setIsResendLoading(false);
     }
   }
 
@@ -273,6 +296,8 @@ export default function RegisterScreen() {
                     setShowVerificationModal(false);
                     setVerificationCode("");
                     setVerificationMessage("");
+                    setVerificationError("");
+                    setResendTimeout(0);
                   }
                 }}
                 className="!bg-red-100 !text-red-700 hover:!bg-red-200
@@ -285,9 +310,12 @@ export default function RegisterScreen() {
                 type="button"
                 variant="secondary"
                 onClick={() => handleRequestVerification()}
-                disabled={isVerificationLoading}
-              >
-                Resend Code
+                isLoading={isResendLoading}
+                disabled={isVerificationLoading || resendTimeout > 0}
+            >
+              {resendTimeout > 0
+                ? `Resend in ${formatTimeRemaining(resendTimeout)}`
+                : "Resend Code"}
               </Button>
               <Button
                 type="submit"
