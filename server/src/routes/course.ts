@@ -6,6 +6,7 @@ import {
   createCourse,
   deleteCourse,
   NewCourseInput,
+  getCourseById,
 } from "../db/course";
 import { CourseSchema } from "../types";
 import { verifyAccessToken, verifyAdminAccessToken } from "./auth";
@@ -25,6 +26,32 @@ const courseRoutes: FastifyPluginAsync = async (server) => {
     try {
       const courses = await getAllCourses(server);
       return courses;
+    } catch (error) {
+      reply.status(500);
+      console.error(error);
+      return { error: "Database error occurred." };
+    }
+  });
+
+  // GET /course/:id - Get a course by id.
+  server.get("/:id", async (request, reply) => {
+    const parsed = idParamsSchema.safeParse(request.params);
+    if (!parsed.success) {
+      reply.status(400);
+      return { error: parsed.error.flatten() };
+    }
+    const { id } = parsed.data;
+    if (isNaN(id)) {
+      reply.code(400).send({ error: "Invalid course id." });
+      return;
+    }
+    try {
+      const course = await getCourseById(server, id);
+      if (!course) {
+        reply.code(404);
+        return { error: "Course not found." };
+      }
+      return course;
     } catch (error) {
       reply.status(500);
       console.error(error);
