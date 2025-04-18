@@ -58,7 +58,7 @@ const userRoutes: FastifyPluginAsync = async (server) => {
   server.post("/", async (request, reply) => {
     const session = await verifyAdminAccessToken(request, reply);
     if (!session) {
-      console.log("Unauthorized POST /user/:id");
+      console.log("Unauthorized POST /user/");
       return;
     }
     const parsed = CreateUserInputSchema.safeParse(request.body);
