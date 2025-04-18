@@ -20,9 +20,18 @@ import {
   updateSessionTokens,
   upsertPendingVerification,
 } from "../db/queries";
-import { generatePasscode, generateToken, hashPassword, verifyPassword } from "../util/crypt";
-import { NewPendingVerificationInput, SessionWithUser, TokenData } from "../types";
-import { rateLimitTimeRemaining } from "../util/rateLimit";
+import {
+  generatePasscode,
+  generateToken,
+  hashPassword,
+  verifyPassword,
+} from "../util/crypt";
+import {
+  NewPendingVerificationInput,
+  SessionWithUser,
+  TokenData,
+} from "../types";
+import { rateLimitConfig, verifyRateLimit } from "../util/rateLimit";
 
 function setTokenCookies(reply: FastifyReply, data: TokenData) {
     reply.setCookie("accessToken", data.accessToken, { httpOnly: true,
@@ -222,15 +231,6 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     name: z.string(),
   })
 
-  // TODO: put in a config
-  const VerificationRequestRateLimit = {
-    timeout: 15 * 60 * 1000, // 15 minutes
-    maxCount: 3 // max requests per IP per timeout
-  };
-
-  const ipVerificationRequestCounts =
-    new Map<string, { count: number; resetTime: number }>();
-
   // POST /auth/request-signup-code - Sends an email verification code.
   server.post("/request-signup-code", async (request, reply) => {
     const parsed = emailVerificationRequestSchema.safeParse(request.body);
@@ -241,25 +241,16 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     }
     const { email, name } = parsed.data;
 
+    if (!verifyRateLimit(request, reply, rateLimitConfig.requestSignupCode)) {
+      console.log(`Rate limited ${request.ip} (verification email request)`);
+      return;
+    }
+
     // Check if email already in database
     const user = await getUserByEmail(server, email);
     if (user) {
       reply.status(409);
       return { error: "Email already in use." };
-    }
-
-    const timeRemaining = rateLimitTimeRemaining(
-      ipVerificationRequestCounts,
-      VerificationRequestRateLimit,
-      request.ip,
-    );
-    if (timeRemaining !== null) {
-      console.log(`Rate limited ${request.ip} (verification email request)`);
-      reply.status(429);
-      return {
-        error: "Too many requests. Please try again later.",
-        timeRemaining,
-      };
     }
 
     // Generate and store passcode
@@ -290,6 +281,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     code: z.string(),
   });
 
+
   // POST /auth/register - Registers a verified account.
   server.post("/register", async (request, reply) => {
     const parsed = RegisterInputSchema.safeParse(request.body);
@@ -299,6 +291,11 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       return { error: parsed.error.flatten() };
     }
     const { email, password, name, grad_year, code } = parsed.data;
+
+    if (!verifyRateLimit(request, reply, rateLimitConfig.register)) {
+      console.log(`Rate limited ${request.ip} (registration request)`);
+      return;
+    }
 
     const pendingVerification =
       await getPendingVerificationByEmail(server, email);
