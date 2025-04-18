@@ -6,6 +6,19 @@ export const DateSchema = z.preprocess((arg) => {
   }
 }, z.date());
 
+export const TimeSchema = z.preprocess((val) => {
+  if (typeof val === "string") {
+    // "HH:MM" or "HH:MM:SS"
+    const [h, m, s = "00"] = val.split(":");
+    const date = new Date(Date.UTC(1970, 0, 1, Number(h), Number(m), Number(s)));
+    return isNaN(date.getTime()) ? undefined : date;
+  }
+  if (val instanceof Date) {
+    return val;
+  }
+  return undefined;
+}, z.date());
+
 export const UserSchema = z.object({
   id: z.number().int().positive(),
   email: z.string().email(),
@@ -42,10 +55,44 @@ export const CourseSchema = z.object({
   created_at: DateSchema,
 });
 
+export const CourseTermEnum = z.enum([
+  "fall",
+  "spring",
+  "summer-a",
+  "summer-b",
+  "summer-c",
+]);
+
+export const UserGroupRoleEnum = z.enum(["owner", "member"]);
+
+export const WeekdayEnum = z.enum([
+  "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"
+]);
+
+export const GroupSchema = z.object({
+  id: z.number().int().positive(),
+  course_id: z.number().int().positive(),
+  year: z.number().int(),
+  term: CourseTermEnum,
+  contact_details: z.string().min(1),
+  meeting_day: WeekdayEnum.nullable(),
+  meeting_time: TimeSchema.nullable(),
+  created_at: DateSchema,
+});
+
+export const UserGroupSchema = z.object({
+  user_id: z.number().int().positive(),
+  group_id: z.number().int().positive(),
+  group_role: UserGroupRoleEnum,
+  created_at: DateSchema,
+});
+
 export type User = z.infer<typeof UserSchema>;
 export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 export type UserSession = z.infer<typeof UserSessionSchema>;
 export type Course = z.infer<typeof CourseSchema>;
+export type Group = z.infer<typeof GroupSchema>;
+export type UserGroup = z.infer<typeof UserGroupSchema>;
 
 export type SessionWithUser = {
   user: User,

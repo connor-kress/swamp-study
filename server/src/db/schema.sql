@@ -45,6 +45,10 @@ CREATE TYPE course_term AS ENUM (
     'fall', 'spring', 'summer-a', 'summer-b', 'summer-c'
 );
 
+CREATE TYPE weekday AS ENUM (
+  'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
+);
+
 CREATE TABLE groups (
     id SERIAL PRIMARY KEY,
     course_id INT NOT NULL
@@ -52,6 +56,9 @@ CREATE TABLE groups (
         ON DELETE CASCADE,
     year INT NOT NULL,
     term course_term NOT NULL,
+    contact_details TEXT NOT NULL,
+    meeting_day weekday,
+    meeting_time TIME,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
