@@ -73,13 +73,17 @@ export function verifyRateLimit(
   reply: FastifyReply,
   rateLimitInfo: RateLimitInfo,
 ): boolean {
-    const timeRemaining = getRateLimitTimeRemaining(rateLimitInfo, request.ip);
-    if (timeRemaining !== null) {
-      reply.status(429).send({
-        error: "Too many requests. Please try again later.",
-        timeRemaining,
-      });
-      return false;
-    }
+  const overrideRateLimit: boolean = (request as any).overrideRateLimit;
+  if (overrideRateLimit) {
     return true;
+  }
+  const timeRemaining = getRateLimitTimeRemaining(rateLimitInfo, request.ip);
+  if (timeRemaining !== null) {
+    reply.status(429).send({
+      error: "Too many requests. Please try again later.",
+      timeRemaining,
+    });
+    return false;
+  }
+  return true;
 }
