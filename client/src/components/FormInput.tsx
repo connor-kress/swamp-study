@@ -2,12 +2,13 @@ import viewIcon from "../assets/view.png";
 import hideIcon from "../assets/hide.png";
 
 interface FormInputProps {
-  type: "text" | "number" | "password" | "email";
+  type: "text" | "number" | "password" | "email" | "date" | "time";
   id: string;
-  name: string; placeholder: string;
+  name: string;
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   // Optional props
+  placeholder?: string;
   minLength?: number;
   maxLength?: number;
   min?: number;
