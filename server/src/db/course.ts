@@ -19,7 +19,7 @@ export async function getAllCourses(
 
 export async function getCourseById(
   server: FastifyInstance,
-  id: number
+  id: number,
 ): Promise<Course | null> {
   const client = await server.pg.connect();
   try {
@@ -40,7 +40,7 @@ export type NewCourseInput = Omit<Course, "id" | "created_at">;
 
 export async function createCourse(
   server: FastifyInstance,
-  course: NewCourseInput
+  course: NewCourseInput,
 ): Promise<Course> {
   const client = await server.pg.connect();
   try {
@@ -58,7 +58,7 @@ export async function createCourse(
 
 export async function deleteCourse(
   server: FastifyInstance,
-  id: number
+  id: number,
 ): Promise<boolean> {
   const client = await server.pg.connect();
   try {

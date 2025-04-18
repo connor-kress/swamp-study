@@ -94,6 +94,10 @@ export type Course = z.infer<typeof CourseSchema>;
 export type Group = z.infer<typeof GroupSchema>;
 export type UserGroup = z.infer<typeof UserGroupSchema>;
 
+export type CourseTerm = z.infer<typeof CourseTermEnum>;
+export type UserGroupRole = z.infer<typeof UserGroupRoleEnum>;
+export type Weekday = z.infer<typeof WeekdayEnum>;
+
 export type SessionWithUser = {
   user: User,
   session: UserSession,
