@@ -35,7 +35,7 @@ CREATE INDEX idx_pending_verifications_expires_at
 
 CREATE TABLE courses (
     id SERIAL PRIMARY KEY,
-    code CHAR(10) NOT NULL,
+    code VARCHAR(10) NOT NULL,
     name VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -7,9 +7,9 @@ export const DateSchema = z.preprocess((arg) => {
 }, z.date());
 
 export const UserSchema = z.object({
-  id: z.number(),
+  id: z.number().int().positive(),
   email: z.string().email(),
-  name: z.string(),
+  name: z.string().min(1).max(100),
   grad_year: z.number(),
   role: z.enum(["admin", "member"]),
   created_at: DateSchema,
@@ -18,25 +18,34 @@ export const UserSchema = z.object({
 export const CreateUserInputSchema = z.object({
   email: z.string().email(),
   password: z.string(),
-  name: z.string(),
-  grad_year: z.number(),
+  name: z.string().min(1).max(100),
+  grad_year: z.number().int().positive(),
   role: z.enum(["admin", "member"]),
 });
 
 export const UserSessionSchema = z.object({
-  id: z.number(),
-  user_id: z.number(),
-  access_token: z.string(),
-  refresh_token: z.string(),
+  id: z.number().int().positive(),
+  user_id: z.number().int().positive(),
+  access_token: z.string().min(1).max(255),
+  refresh_token: z.string().min(1).max(255),
   access_expires: DateSchema,
   refresh_expires: DateSchema,
   created_at: DateSchema,
   updated_at: DateSchema,
 });
 
+export const courseSchema = z.object({
+  id: z.number().int().positive(),
+  code: z.string().min(7).max(10), // e.g. "CEN3031"
+  name: z .string().min(1).max(100),
+  description: z.string().min(1),
+  created_at: DateSchema,
+});
+
 export type User = z.infer<typeof UserSchema>;
 export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 export type UserSession = z.infer<typeof UserSessionSchema>;
+export type Course = z.infer<typeof courseSchema>;
 
 export type SessionWithUser = {
   user: User,
@@ -51,8 +60,8 @@ export type TokenData = {
 };
 
 export const PendingVerificationSchema = z.object({
-  email: z.string(),
-  code_hash: z.string(),
+  email: z.string().email(),
+  code_hash: z.string().min(1).max(255),
   expires_at: DateSchema,
   created_at: DateSchema,
 });
