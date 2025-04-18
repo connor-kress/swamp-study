@@ -23,12 +23,18 @@ describe('User API Integration', () => {
       password: 'securePassword123',
       name: 'Alice',
       grad_year: 2024,
+      role: "member",
     };
     const createRes = await server.inject({
       method: 'POST',
       url: '/api/user/',
       payload: newUserPayload,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        "Content-Type": "application/json",
+        "x-test-auth": "1",
+        "x-test-user-role": "admin",
+        "x-test-user-id": "69",
+      },
     });
     expect(createRes.statusCode).toBe(201);
     const createdUser = JSON.parse(createRes.payload);

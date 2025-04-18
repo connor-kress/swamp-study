@@ -22,6 +22,7 @@ describe("POST /api/user - Input Validation", () => {
       password: "securePassword123",
       name: "Alice",
       grad_year: 2024,
+      role: "member",
     };
     const response = await server.inject({
       method: "POST",
@@ -29,6 +30,9 @@ describe("POST /api/user - Input Validation", () => {
       payload: invalidEmailPayload,
       headers: {
         "Content-Type": "application/json",
+        "x-test-auth": "1",
+        "x-test-user-role": "admin",
+        "x-test-user-id": "69",
       },
     });
     expect(response.statusCode).toBe(400);
@@ -43,6 +47,7 @@ describe("POST /api/user - Input Validation", () => {
       password: "securePassword123",
       name: "Alice",
       grad_year: "2024", // Incorrect type: should be a number.
+      role: "member",
     };
 
     const response = await server.inject({
@@ -51,6 +56,9 @@ describe("POST /api/user - Input Validation", () => {
       payload: invalidGradYearPayload,
       headers: {
         "Content-Type": "application/json",
+        "x-test-auth": "1",
+        "x-test-user-role": "admin",
+        "x-test-user-id": "69",
       },
     });
 
@@ -66,6 +74,7 @@ describe("POST /api/user - Input Validation", () => {
       email: "alice@ufl.edu",
       name: "Alice",
       grad_year: 2024,
+      role: "member",
       // Missing password
     };
     const response = await server.inject({
@@ -74,6 +83,9 @@ describe("POST /api/user - Input Validation", () => {
       payload: missingFieldPayload,
       headers: {
         "Content-Type": "application/json",
+        "x-test-auth": "1",
+        "x-test-user-role": "admin",
+        "x-test-user-id": "69",
       },
     });
     expect(response.statusCode).toBe(400);
@@ -88,6 +100,7 @@ describe("POST /api/user - Input Validation", () => {
       password: "securePassword123",
       name: "Alice",
       grad_year: 2024,
+      role: "member",
     };
     const response = await server.inject({
       method: "POST",
@@ -95,6 +108,9 @@ describe("POST /api/user - Input Validation", () => {
       payload: validPayload,
       headers: {
         "Content-Type": "application/json",
+        "x-test-auth": "1",
+        "x-test-user-role": "admin",
+        "x-test-user-id": "69",
       },
     });
     expect(response.statusCode).not.toBe(400);
