@@ -35,18 +35,20 @@ export function buildServer(pgPool?: Pool): FastifyInstance {
   server.register(cookie);
 
   server.addHook("preHandler", async (request: FastifyRequest, _reply) => {
-    if (
-      config.nodeEnv === "test" &&
-      request.headers["x-test-auth"] === "1"
-    ) {
-      const role = request.headers["x-test-user-role"];
-      const userIdHeader = request.headers["x-test-user-id"];
-      if (!userIdHeader) throw new Error("Missing x-test-user-id");
-      const testUserId = parseInt(userIdHeader as string, 10);
-      if (isNaN(testUserId)) throw new Error("Invalid x-test-user-id");
-      const isAdmin = role === "admin";
-      const testSession = getTestingSession(testUserId, isAdmin);
-      (request as any).testSession = testSession;
+    if (config.nodeEnv === "test") {
+      if (request.headers["x-test-auth"] === "1") {
+        const role = request.headers["x-test-user-role"];
+        const userIdHeader = request.headers["x-test-user-id"];
+        if (!userIdHeader) throw new Error("Missing x-test-user-id");
+        const testUserId = parseInt(userIdHeader as string, 10);
+        if (isNaN(testUserId)) throw new Error("Invalid x-test-user-id");
+        const isAdmin = role === "admin";
+        const testSession = getTestingSession(testUserId, isAdmin);
+        (request as any).testSession = testSession;
+      }
+      if (request.headers["x-test-override-rate-limit"] === "1") {
+        (request as any).overrideRateLimit = true;
+      }
     }
   });
 
