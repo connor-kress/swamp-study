@@ -9,7 +9,7 @@ import {
 } from "../db/queries";
 import { CreateUserInputSchema } from "../types";
 import { hashPassword } from "../util/crypt";
-import { verifyAccessToken } from "./auth";
+import { verifyAccessToken, verifyAdminAccessToken } from "./auth";
 
 export const idParamsSchema = z.object({
   id: z.string().transform((val) => parseInt(val, 10)),
@@ -56,12 +56,8 @@ const userRoutes: FastifyPluginAsync = async (server) => {
 
   // POST /user/ - Create a new user (admin only).
   server.post("/", async (request, reply) => {
-    const session = await verifyAccessToken(request, reply);
-    const user = session?.user
-    if (!user || user.role !== "admin") {
-      if (user) reply.code(401).send({
-        error: "Access denied: admin only.",
-      });
+    const session = await verifyAdminAccessToken(request, reply);
+    if (!session) {
       console.log("Unauthorized POST /user/:id");
       return;
     }
