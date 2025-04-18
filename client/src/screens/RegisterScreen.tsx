@@ -72,7 +72,7 @@ export default function RegisterScreen() {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Failed to send verification code");
+        throw new Error(data.error ?? "Failed to send verification code");
       }
       setVerificationMessage(
         "We've sent a verification code to your email. Please check your inbox and junk folder. (This may take a minute.)"
@@ -123,7 +123,7 @@ export default function RegisterScreen() {
 
       if (!response.ok) {
         const json = await response.json();
-        throw new Error(json?.error || "Unknown error");
+        throw new Error(json?.error ?? "Unknown error");
       }
 
       const data = await response.json();
