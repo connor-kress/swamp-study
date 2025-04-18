@@ -73,6 +73,22 @@ export async function verifyAccessToken(
   return session;
 }
 
+export async function verifyAdminAccessToken(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  allowOverride: boolean = true,
+): Promise<SessionWithUser | null> {
+  const session = await verifyAccessToken(request, reply, allowOverride);
+  if (!session) return null;
+  if (session.user.role !== "admin") {
+    reply.code(401).send({
+      error: "Access denied: admin only.",
+    });
+    return null;
+  }
+  return session;
+}
+
 const authRoutes: FastifyPluginAsync = async (server) => {
 
   // POST /auth/refresh - Attempts rolling token refresh with refresh token.
