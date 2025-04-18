@@ -1,8 +1,37 @@
-export function rateLimitTimeRemaining(
+import { FastifyReply, FastifyRequest } from "fastify";
+
+type RateLimitInfo = {
   ipRequestCounts: Map<string, { count: number; resetTime: number }>,
   rateLimit: { timeout: number, maxCount: number },
+};
+
+type RateLimitConfig = {
+  requestSignupCode: RateLimitInfo,
+  register: RateLimitInfo,
+};
+
+export const rateLimitConfig: RateLimitConfig = {
+  requestSignupCode: {
+    ipRequestCounts: new Map(),
+    rateLimit: {
+      timeout: 15 * 60 * 1000, // 15 minutes
+      maxCount: 3
+    },
+  },
+  register: {
+    ipRequestCounts: new Map(),
+    rateLimit: {
+      timeout: 15 * 60 * 1000, // 15 minutes
+      maxCount: 9
+    },
+  },
+};
+
+function getRateLimitTimeRemaining(
+  rateLimitInfo: RateLimitInfo,
   clientIP: string,
 ): number | null {
+  const { ipRequestCounts, rateLimit } = rateLimitInfo;
   const now = Date.now();
   const requestInfo = ipRequestCounts.get(clientIP);
     if (requestInfo) {
@@ -37,4 +66,20 @@ export function rateLimitTimeRemaining(
     }
   }
   return null;
+}
+
+export function verifyRateLimit(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  rateLimitInfo: RateLimitInfo,
+): boolean {
+    const timeRemaining = getRateLimitTimeRemaining(rateLimitInfo, request.ip);
+    if (timeRemaining !== null) {
+      reply.status(429).send({
+        error: "Too many requests. Please try again later.",
+        timeRemaining,
+      });
+      return false;
+    }
+    return true;
 }

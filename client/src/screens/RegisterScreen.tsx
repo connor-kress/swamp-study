@@ -79,7 +79,7 @@ export default function RegisterScreen() {
         // + ` [${data.message}]` // for testing
       );
       setShowVerificationModal(true);
-      setResendTimeout(60);
+      setResendTimeout(120);
     } catch (err) {
       const errorMsg =
         err instanceof Error ? err.message : "Failed to send verification code";
