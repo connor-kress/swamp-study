@@ -34,7 +34,7 @@ export const UserSessionSchema = z.object({
   updated_at: DateSchema,
 });
 
-export const courseSchema = z.object({
+export const CourseSchema = z.object({
   id: z.number().int().positive(),
   code: z.string().min(7).max(10), // e.g. "CEN3031"
   name: z .string().min(1).max(100),
@@ -45,7 +45,7 @@ export const courseSchema = z.object({
 export type User = z.infer<typeof UserSchema>;
 export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 export type UserSession = z.infer<typeof UserSessionSchema>;
-export type Course = z.infer<typeof courseSchema>;
+export type Course = z.infer<typeof CourseSchema>;
 
 export type SessionWithUser = {
   user: User,
