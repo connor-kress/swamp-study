@@ -17,12 +17,18 @@ async function createTestUser(name: string) {
   const createResponse = await server.inject({
     method: "POST",
     url: "/api/user/",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-test-auth": "1",
+      "x-test-user-role": "admin",
+      "x-test-user-id": "69",
+    },
     payload: {
       email: `${name}@ufl.edu`,
       password: "password123",
       name: name,
       grad_year: 2029,
+      role: "member"
     },
   });
   expect(createResponse.statusCode).toBe(201);
@@ -331,6 +337,10 @@ describe("Registration Flow Integration", () => {
     await server.inject({
       method: "POST",
       url: "/api/auth/request-signup-code",
+      headers: {
+        "Content-Type": "application/json",
+        "x-test-override-rate-limit": "1",
+      },
       payload: { email: email, name: "Invalid Coder" },
     });
     const correctCode = mockEmailService.findCodeForEmail(email);
@@ -364,6 +374,10 @@ describe("Registration Flow Integration", () => {
     await server.inject({
       method: "POST",
       url: "/api/auth/request-signup-code",
+      headers: {
+        "Content-Type": "application/json",
+        "x-test-override-rate-limit": "1",
+      },
       payload: { email: email, name: "Expired Code Guy" },
     });
     const code = mockEmailService.findCodeForEmail(email);
