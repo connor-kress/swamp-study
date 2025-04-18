@@ -54,26 +54,25 @@ const userRoutes: FastifyPluginAsync = async (server) => {
     }
   });
 
-  // POST /user/ - Create a new user (deprecated).
+  // POST /user/ - Create a new user (admin only).
   server.post("/", async (request, reply) => {
-    // const session = await verifyAccessToken(request, reply);
-    // const user = session?.user
-    // if (!user || user.role !== "admin") {
-    //   if (user) reply.code(401).send({
-    //     error: "Access denied: admin only.",
-    //   });
-    //   console.log("Unauthorized DELETE /user/:id");
-    //   return;
-    // }
+    const session = await verifyAccessToken(request, reply);
+    const user = session?.user
+    if (!user || user.role !== "admin") {
+      if (user) reply.code(401).send({
+        error: "Access denied: admin only.",
+      });
+      console.log("Unauthorized POST /user/:id");
+      return;
+    }
     const parsed = CreateUserInputSchema.safeParse(request.body);
     if (!parsed.success) {
       reply.status(400);
       return { error: parsed.error.flatten() };
     }
-    const { email, password, name, grad_year } = parsed.data;
+    const { email, password, name, grad_year, role } = parsed.data;
     const userInput: NewUserInput = {
-      email, name, grad_year,
-      role: "member",
+      email, name, grad_year, role,
       password_hash: await hashPassword(password),
     };
 
