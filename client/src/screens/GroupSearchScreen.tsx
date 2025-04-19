@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import Button from "../components/Button";
+import FormInput from "../components/FormInput";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
-import FormInput from "../components/FormInput";
-import Button from "../components/Button";
 
 // Mock data for demonstration - in proudction use real data from the databse
 // also include token verification for when user is not logged in
@@ -71,7 +71,9 @@ export default function GroupSearchScreen() {
             {filteredGroups.map(group => (
               <div 
                 key={group.id}
-                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="p-4 border border-gray-200 dark:border-gray-700
+                           rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800
+                           transition-colors"
               >
                 <h3 className="text-xl font-semibold">{group.className}</h3>
                 <div className="mt-2 space-y-1">

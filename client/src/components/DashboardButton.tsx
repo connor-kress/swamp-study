@@ -1,11 +1,11 @@
 import { Link } from 'react-router';
 
 export default function DashboardButton() {
-    return (
-        <Link to="/dashboard" style={{ textAlign: 'right' }}>
-            <button style={{ margin: '20px 10px', padding: '10px 20px' }}>
-              Back to Dashboard
-            </button>
-        </Link>
-    );
+  return (
+    <Link to="/dashboard">
+      <button className="my-6 mx-3 py-3 px-6">
+        Back to Dashboard
+      </button>
+    </Link>
+  );
 }
