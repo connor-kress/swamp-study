@@ -69,12 +69,11 @@ export default function NewGroupScreen() {
 
   useEffect(() => {
     // Only reset form data if searchQuery is empty and we had previous class data
-    if (searchQuery === "" && formData.classCode) {
+    if (formData.classCode && searchQuery !== formData.classCode) {
       setFormData(prevData => ({
         ...prevData,
         className: "",
         classCode: "",
-        description: "",
         term: "",
       }));
     }
@@ -131,21 +130,6 @@ export default function NewGroupScreen() {
 
         <form className="w-full space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            {/* <label htmlFor="className" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              class Name
-            </label>
-            <FormInput
-              type="text"
-              id="className"
-              name="className"
-              placeholder="e.g. Calculus 3"
-              value={formData.className}
-              onChange={handleInputChange}
-              minLength={2}
-              required
-            /> */}
-
-
             <label htmlFor="classCode" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Class Code
             </label>
@@ -163,75 +147,65 @@ export default function NewGroupScreen() {
             {selectedClass.length > 0 ? (
               <>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-              {selectedClass.length} class(es) found matching your search.
+                {selectedClass.length} class(es) found matching your search.
               </div>
 
               <div className="space-y-2">
-              {selectedClass.map((cls = selectedClass[0]) => (
-              <div
-                key={cls.id}
-                className="p-4 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => {
-                setFormData((prevData) => ({
-                  ...prevData,
-                  className: cls.className,
-                  classCode: cls.classCode,
-                  description: cls.classDescription,
-                  term: cls.term,
-                }));
-                setSearchQuery(cls.classCode);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setFormData((prevData) => ({
-                      ...prevData,
-                      className: cls.className,
-                      classCode: cls.classCode,
-                      description: cls.classDescription,
-                      term: cls.term,
-                    }));
-                    setSearchQuery(cls.classCode);
-                  }
-                }}
-                tabIndex={0}
-                role="button"
-              >
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                {cls.className}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                Class code: {cls.classCode}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                Professor: {cls.professor}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                Term: {cls.term}
-                </p>
-              </div>
+                {selectedClass.map((cls = selectedClass[0]) => (
+                <div
+                  key={cls.id}
+                  className="p-4 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                  onClick={() => {
+                  setFormData((prevData) => ({
+                    ...prevData,
+                    className: cls.className,
+                    classCode: cls.classCode,
+                    term: cls.term,
+                  }));
+                  setSearchQuery(cls.classCode);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setFormData((prevData) => ({
+                        ...prevData,
+                        className: cls.className,
+                        classCode: cls.classCode,
+                        term: cls.term,
+                      }));
+                      setSearchQuery(cls.classCode);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                >
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                    {cls.className}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Class code: {cls.classCode}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Description: {cls.classDescription}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Professor: {cls.professor}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Term: {cls.term}
+                  </p>
+                </div>
               ))}
               </div>
               </>
             ) : (searchQuery.length > 0 ? (
               <>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                No classes found matching your search. <Link to="/new-class"
-                className="text-blue-600 dark:text-blue-400 hover:underline">
-                Create a new class here
-                </Link>
-              </div>
-              {formData.className && (
-                useEffect(() => {
-                setFormData(prevData => ({
-                  ...prevData,
-                  className: "",
-                  classCode: "",
-                  description: "",
-                  term: "",
-                }));
-                }, [searchQuery])
-              )}
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  No classes found matching your search. <Link to="/new-class"
+                  className="text-blue-600 dark:text-blue-400 hover:underline">
+                  Create a new class here
+                  </Link>
+                </div>
               </>
             ) : 
               <>
@@ -325,11 +299,7 @@ export default function NewGroupScreen() {
           >
             Create
           </Button>
-
-          
         </form>
-        
-        
       </div>
     </>
   );
