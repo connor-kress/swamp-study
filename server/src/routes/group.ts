@@ -8,12 +8,12 @@ import {
   getAllGroups,
   getGroupById,
   getUserGroupRole,
+  getUsersInGroup,
   NewGroupInput,
   removeUserFromGroup,
 } from "../db/group";
 import { GroupSchema, SessionWithUser, UserGroupRoleEnum } from "../types";
 import { verifyAccessToken, verifyAdminAccessToken } from "./auth";
-import { getUserById } from "../db/queries";
 
 export const idParamsSchema = z.object({
   id: z.string().transform((val) => parseInt(val, 10)),
@@ -35,7 +35,8 @@ function getGroupAndUserIdParams(
     const userIdParsed = idParamsSchema.safeParse({
       id: (request.params as any).user_id,
     });
-    if (!groupIdParsed.success || !userIdParsed.success) {
+    if (!groupIdParsed.success || !userIdParsed.success
+      || isNaN(groupIdParsed.data.id) || isNaN(userIdParsed.data.id)) {
       reply.code(400).send({ error: "Invalid group_id or user_id." });
       return { group_id: null, user_id: null };
     }
@@ -288,7 +289,34 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
     }
   });
 
-  // TODO: get all users in group
+
+  // GET /group/:id/users - Get all users in a group and their roles
+  server.get("/:id/users", async (request, reply) => {
+    const parsed = idParamsSchema.safeParse(request.params);
+    if (!parsed.success) {
+      reply.code(400);
+      return { error: parsed.error.flatten() };
+    }
+    const { id } = parsed.data;
+    if (isNaN(id)) {
+      reply.code(400).send({ error: "Invalid group id." });
+      return;
+    }
+    const session = await verifyAccessToken(request, reply);
+    if (!session) {
+      console.log("Unauthorized GET /group/:id/user");
+      return;
+    }
+
+    try {
+      const users = await getUsersInGroup(server, id);
+      return users;
+    } catch (error) {
+      reply.code(500);
+      console.error(error);
+      return { error: "Database error occurred." };
+    }
+  });
 };
 
 export default groupRoutes;
