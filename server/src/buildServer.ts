@@ -6,8 +6,9 @@ import { Pool } from "pg";
 
 import config from "./config"
 import authRoutes from "./routes/auth";
-import userRoutes from "./routes/user";
 import courseRoutes from "./routes/course";
+import groupRoutes from "./routes/group";
+import userRoutes from "./routes/user";
 import emailPlugin from "./plugins/email"
 import { getTestingSession } from "./testHelpers/sessions";
 
@@ -55,8 +56,9 @@ export function buildServer(pgPool?: Pool): FastifyInstance {
 
 
   server.register(authRoutes, { prefix: "/api/auth" });
-  server.register(userRoutes, { prefix: "/api/user" });
   server.register(courseRoutes, { prefix: "/api/course" });
+  server.register(groupRoutes, { prefix: "/api/group" });
+  server.register(userRoutes, { prefix: "/api/user" });
 
   server.get("/api/ping", async (_request, _reply) => {
     return "pong";
