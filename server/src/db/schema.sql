@@ -51,6 +51,7 @@ CREATE TYPE weekday AS ENUM (
 
 CREATE TABLE groups (
     id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
     course_id INT NOT NULL
         REFERENCES courses(id)
         ON DELETE CASCADE,
@@ -59,6 +60,7 @@ CREATE TABLE groups (
     contact_details TEXT NOT NULL,
     meeting_day weekday,
     meeting_time TIME,
+    meeting_location VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

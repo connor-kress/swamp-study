@@ -16,8 +16,8 @@ export async function getAllGroups(
   const client = await server.pg.connect();
   try {
     const { rows } = await client.query(`
-      SELECT id, course_id, year, term, contact_details,
-             meeting_day, meeting_time, created_at
+      SELECT id, name, course_id, year, term, contact_details,
+             meeting_day, meeting_time, meeting_location, created_at
       FROM groups
       ORDER BY year DESC, term DESC, course_id DESC, id DESC
     `);
@@ -34,8 +34,8 @@ export async function getGroupById(
   const client = await server.pg.connect();
   try {
     const { rows } = await client.query(`
-      SELECT id, course_id, year, term, contact_details,
-             meeting_day, meeting_time, created_at
+      SELECT id, name, course_id, year, term, contact_details,
+             meeting_day, meeting_time, meeting_location, created_at
       FROM groups
       WHERE id = $1
     `, [id]);
@@ -53,8 +53,8 @@ export async function getGroupsByCourseId(
   const client = await server.pg.connect();
   try {
     const { rows } = await client.query(`
-      SELECT id, course_id, year, term, contact_details,
-             meeting_day, meeting_time, created_at
+      SELECT id, name, course_id, year, term, contact_details,
+             meeting_day, meeting_time, meeting_location, created_at
       FROM groups
       WHERE course_id = $1
       ORDER BY year DESC, term DESC, id DESC`,
@@ -80,13 +80,14 @@ export async function createGroupWithOwner(
     // Insert group
     const { rows: groupRows } = await client.query(`
       INSERT INTO groups (
-        course_id, year, term, contact_details,
-        meeting_day, meeting_time
+        name, course_id, year, term, contact_details,
+        meeting_day, meeting_time, meeting_location
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, course_id, year, term, contact_details,
-                meeting_day, meeting_time, created_at`,
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, name, course_id, year, term, contact_details,
+                meeting_day, meeting_time, meeting_location, created_at`,
       [
+        group.name,
         group.course_id,
         group.year,
         group.term,
@@ -95,6 +96,7 @@ export async function createGroupWithOwner(
         group.meeting_time
           ? group.meeting_time.toISOString().slice(11, 19) // "HH:MM:SS"
           : null,
+        group.meeting_location ?? null,
       ]
     );
     const createdGroup = GroupSchema.parse(groupRows[0]);
@@ -136,6 +138,7 @@ export async function deleteGroup(
   }
 }
 
+// Adds a user to a group, updating their role if already a member
 export async function addUserToGroup(
   server: FastifyInstance,
   user_id: number,

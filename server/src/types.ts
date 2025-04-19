@@ -71,12 +71,15 @@ export const WeekdayEnum = z.enum([
 
 export const GroupSchema = z.object({
   id: z.number().int().positive(),
+  name: z.string().min(1).max(100),
   course_id: z.number().int().positive(),
   year: z.number().int(),
   term: CourseTermEnum,
   contact_details: z.string().min(1),
-  meeting_day: WeekdayEnum.nullable(),
-  meeting_time: TimeSchema.nullable(),
+  meeting_day: WeekdayEnum.nullable().optional().default(null),
+  meeting_time: TimeSchema.nullable().optional().default(null),
+  meeting_location: z.string().min(1).max(100)
+                     .nullable().optional().default(null),
   created_at: DateSchema,
 });
 
