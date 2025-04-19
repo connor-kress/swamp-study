@@ -79,7 +79,7 @@ export function verifyRateLimit(
   }
   const timeRemaining = getRateLimitTimeRemaining(rateLimitInfo, request.ip);
   if (timeRemaining !== null) {
-    reply.status(429).send({
+    reply.code(429).send({
       error: "Too many requests. Please try again later.",
       timeRemaining,
     });

@@ -27,7 +27,7 @@ const courseRoutes: FastifyPluginAsync = async (server) => {
       const courses = await getAllCourses(server);
       return courses;
     } catch (error) {
-      reply.status(500);
+      reply.code(500);
       console.error(error);
       return { error: "Database error occurred." };
     }
@@ -37,7 +37,7 @@ const courseRoutes: FastifyPluginAsync = async (server) => {
   server.get("/:id", async (request, reply) => {
     const parsed = idParamsSchema.safeParse(request.params);
     if (!parsed.success) {
-      reply.status(400);
+      reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const { id } = parsed.data;
@@ -53,7 +53,7 @@ const courseRoutes: FastifyPluginAsync = async (server) => {
       }
       return course;
     } catch (error) {
-      reply.status(500);
+      reply.code(500);
       console.error(error);
       return { error: "Database error occurred." };
     }
@@ -68,17 +68,17 @@ const courseRoutes: FastifyPluginAsync = async (server) => {
     }
     const parsed = CreateCourseInputSchema.safeParse(request.body);
     if (!parsed.success) {
-      reply.status(400);
+      reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const courseInput: NewCourseInput = parsed.data;
     try {
       const newCourse = await createCourse(server, courseInput);
-      reply.status(201);
+      reply.code(201);
       return newCourse;
     } catch (error: any) {
       console.error("Error creating course:", error);
-      reply.status(500);
+      reply.code(500);
       return { error: "Database error occurred." };
     }
   });
@@ -87,7 +87,7 @@ const courseRoutes: FastifyPluginAsync = async (server) => {
   server.delete("/:id", async (request, reply) => {
     const parsed = idParamsSchema.safeParse(request.params);
     if (!parsed.success) {
-      reply.status(400);
+      reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const { id } = parsed.data;
@@ -105,15 +105,15 @@ const courseRoutes: FastifyPluginAsync = async (server) => {
     try {
       const success = await deleteCourse(server, id);
       if (!success) {
-        reply.status(404);
+        reply.code(404);
         console.log("Attempted to delete non-existent course")
         return { error: "Course not found." };
       }
-      reply.status(200);
+      reply.code(200);
       return { status: "success", message: `Course ${id} deleted.` };
     } catch (error) {
       console.error(`Error deleting course ${id}:`, error);
-      reply.status(500);
+      reply.code(500);
       return { error: "Database error occurred." };
     }
   });

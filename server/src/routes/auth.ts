@@ -152,7 +152,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     const parsed = loginParamsSchema.safeParse(request.body);
     if (!parsed.success) {
       console.log(parsed.error.flatten());
-      reply.status(400);
+      reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const { email, password } = parsed.data;
@@ -236,7 +236,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     const parsed = emailVerificationRequestSchema.safeParse(request.body);
     if (!parsed.success) {
       console.log(parsed.error.flatten());
-      reply.status(400);
+      reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const { email, name } = parsed.data;
@@ -249,7 +249,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     // Check if email already in database
     const user = await getUserByEmail(server, email);
     if (user) {
-      reply.status(409);
+      reply.code(409);
       return { error: "Email already in use." };
     }
 
@@ -268,7 +268,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       // return { message: code}; // for testing
     } catch (err) {
       console.error("Failed to send verification code:", err);
-      reply.status(500);
+      reply.code(500);
       return { message: "Failed to send verification code." };
     }
   });
@@ -287,7 +287,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     const parsed = RegisterInputSchema.safeParse(request.body);
     if (!parsed.success) {
       console.log(parsed.error.flatten());
-      reply.status(400);
+      reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const { email, password, name, grad_year, code } = parsed.data;
@@ -300,15 +300,15 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     const pendingVerification =
       await getPendingVerificationByEmail(server, email);
     if (!pendingVerification) {
-        reply.status(400);
+        reply.code(400);
         return { error: "Pending verification not found." };
     }
     if (Date.now() > pendingVerification.expires_at.getTime()) {
-        reply.status(400);
+        reply.code(400);
         return { error: "Passcode expired." };
     }
     if (!await verifyPassword(code, pendingVerification.code_hash)) {
-        reply.status(400);
+        reply.code(400);
         return { error: "Invalid passcode." };
     }
 
@@ -325,16 +325,16 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     try {
       const newUser = await createUser(server, userInput);
       console.log(`Registered user: ${newUser.email}`)
-      reply.status(201);
+      reply.code(201);
       return newUser;
     } catch (error: any) {
       if (error?.code === "23505") {
         console.error("Error creating user: Email already in use");
-        reply.status(409);
+        reply.code(409);
         return { error: "Email already in use." };
       }
       console.error("Error creating user:", error);
-      reply.status(500);
+      reply.code(500);
       return { error: "Database error occurred." };
     }
   });

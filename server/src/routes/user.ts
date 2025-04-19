@@ -20,7 +20,7 @@ const userRoutes: FastifyPluginAsync = async (server) => {
   server.get("/:id", async (request, reply) => {
     const parsed = idParamsSchema.safeParse(request.params);
     if (!parsed.success) {
-      reply.status(400);
+      reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const { id } = parsed.data;
@@ -63,7 +63,7 @@ const userRoutes: FastifyPluginAsync = async (server) => {
     }
     const parsed = CreateUserInputSchema.safeParse(request.body);
     if (!parsed.success) {
-      reply.status(400);
+      reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const { email, password, name, grad_year, role } = parsed.data;
@@ -74,16 +74,16 @@ const userRoutes: FastifyPluginAsync = async (server) => {
 
     try {
       const newUser = await createUser(server, userInput);
-      reply.status(201);
+      reply.code(201);
       return newUser;
     } catch (error: any) {
       if (error?.code === "23505") {
         console.error("Error creating user: Email already in use");
-        reply.status(409);  // conflict
+        reply.code(409);  // conflict
         return { error: "Email already in use." };
       }
       console.error("Error creating user:", error);
-      reply.status(500);
+      reply.code(500);
       return { error: "Database error occurred." };
     }
   });
@@ -92,7 +92,7 @@ const userRoutes: FastifyPluginAsync = async (server) => {
   server.delete("/:id", async (request, reply) => {
     const parsed = idParamsSchema.safeParse(request.params);
     if (!parsed.success) {
-      reply.status(400);
+      reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const { id } = parsed.data;
@@ -115,15 +115,15 @@ const userRoutes: FastifyPluginAsync = async (server) => {
     try {
       const success = await deleteUser(server, id);
       if (!success) {
-        reply.status(404);
+        reply.code(404);
         return { error: "User not found." };
       }
-      reply.status(200);
+      reply.code(200);
       console.log(`Successfully deleted account: ${user.email}`);
       return { status: "success", message: `Account ${user.email} deleted.` };
     } catch (error) {
       console.error(`Error deleting account: ${user.email} -`, error);
-      reply.status(500);
+      reply.code(500);
       return { error: "Database error occurred." };
     }
   });
