@@ -1,9 +1,9 @@
-import LogoutButton from "./LogoutButton"
-import DashboardButton from "./DashboardButton"
+import DashboardButton from "./DashboardButton";
+import LogoutButton from "./LogoutButton";
 
 export default function NavBar() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', paddingLeft: '10px', paddingRight: '10px' }}>
+    <div className="flex justify-between w-full pl-3 pr-3">
       <LogoutButton />
       <DashboardButton />
     </div>
