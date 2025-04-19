@@ -16,7 +16,13 @@ export const CreateGroupInputSchema = GroupSchema.omit({
 
 const groupRoutes: FastifyPluginAsync = async (server) => {
   // GET /group/ - Get all groups.
-  server.get("/", async (_, reply) => {
+  server.get("/", async (request, reply) => {
+    const session = await verifyAccessToken(request, reply);
+    if (!session) {
+      console.log("Unauthorized GET /group/");
+      return;
+    }
+
     try {
       const groups = await getAllGroups(server);
       return groups;
@@ -39,6 +45,13 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
       reply.code(400).send({ error: "Invalid group id." });
       return;
     }
+
+    const session = await verifyAccessToken(request, reply);
+    if (!session) {
+      console.log("Unauthorized GET /group/:id");
+      return;
+    }
+
     try {
       const group = await getGroupById(server, id);
       if (!group) {
@@ -53,26 +66,26 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
     }
   });
 
-  // POST /group/ - Create a group (members only).
+  // POST /group/ - Create a group.
   server.post("/", async (request, reply) => {
-    const session = await verifyAccessToken(request, reply);
-    if (!session) {
-      console.log("Unauthorized POST /group/");
-      return;
-    }
     const parsed = CreateGroupInputSchema.safeParse(request.body);
     if (!parsed.success) {
       reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const groupInput: NewGroupInput = parsed.data;
+    const session = await verifyAccessToken(request, reply);
+    if (!session) {
+      console.log("Unauthorized POST /group/");
+      return;
+    }
     try {
       const newGroup = await createGroupWithOwner(
         server, groupInput, session.user.id
       );
       reply.code(201);
       return newGroup.group;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating group:", error);
       reply.code(500);
       return { error: "Database error occurred." };
@@ -126,7 +139,43 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
     }
   });
 
-  // TODO: get UserGroup, add to group, remove from group, get all users in group (this needs query too)
+
+  // GET /group/:group_id/user/:user_id - Get a user's group association.
+  server.get("/:group_id/user/:user_id", async (request, reply) => {
+    const groupIdParsed = idParamsSchema.safeParse({
+      id: (request.params as any).group_id
+    });
+    const userIdParsed = idParamsSchema.safeParse({
+      id: (request.params as any).user_id
+    });
+    if (!groupIdParsed.success || !userIdParsed.success) {
+      reply.status(400);
+      return { error: "Invalid group_id or user_id." };
+    }
+    const group_id = groupIdParsed.data.id;
+    const user_id = userIdParsed.data.id;
+
+    const session = await verifyAccessToken(request, reply);
+    if (!session) {
+      console.log("Unauthorized GET /group/:group_id/user/:user_id");
+      return;
+    }
+
+    try {
+      const userGroup = await getUserGroupRole(server, user_id, group_id);
+      if (!userGroup) {
+        reply.status(404);
+        return { error: "No user found in group." };
+      }
+      return userGroup;
+    } catch (error) {
+      reply.status(500);
+      console.error(error);
+      return { error: "Database error occurred." };
+    }
+  });
+
+  // TODO: add to group, remove from group, get all users in group
 };
 
 export default groupRoutes;
