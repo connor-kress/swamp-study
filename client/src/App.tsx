@@ -5,6 +5,7 @@ import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import GroupSearchScreen from "./screens/GroupSearchScreen";
 import NewGroupScreen from "./screens/NewGroupScreen";
+import NewClassScreen from "./screens/NewClassScreen";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardScreen />} />
         <Route path="/new-group" element={<NewGroupScreen />} />
         <Route path="/find-group" element={<GroupSearchScreen />} />
+        <Route path="/new-class" element={<NewClassScreen />} />
       </Routes>
     </BrowserRouter>
   );
