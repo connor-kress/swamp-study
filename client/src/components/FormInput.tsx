@@ -13,6 +13,7 @@ interface FormInputProps {
   maxLength?: number;
   min?: number;
   max?: number;
+  step?: number; // For time input
   required?: boolean;
   onBlur?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onInput?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -33,6 +34,7 @@ export default function FormInput({
   maxLength,
   min,
   max,
+  step,
   required = true, // default required
   onBlur,
   onInput,
@@ -40,6 +42,7 @@ export default function FormInput({
   passwordVisible = false,
   onPasswordToggle
 }: FormInputProps) {
+  console.log(`FormInput ${name} props:`, { type, step }); // Add this line
   const baseInputStyles = `
     w-full px-4 py-2.5 rounded-lg
     border border-gray-300 dark:border-gray-600
@@ -64,6 +67,7 @@ export default function FormInput({
       maxLength={maxLength}
       min={min}
       max={max}
+      step={type === "time" ? "900" : step}
       required={required}
       onBlur={onBlur}
       onInput={onInput}

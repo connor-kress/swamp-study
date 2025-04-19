@@ -1,4 +1,5 @@
 import React, { useState, } from "react";
+import { NavigateFunction, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
 import FormInput from "../components/FormInput";
@@ -15,8 +16,10 @@ type StudyGroupFormData = {
   maxMembers: number;
 }
 
+
 export default function NewGroupScreen() {
   // Redirect to login screen when signed out
+
   const [formData, setFormData] = useState<StudyGroupFormData>({
     courseName: "",
     courseCode: "",
@@ -32,27 +35,24 @@ export default function NewGroupScreen() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
     setFormData(prevData => ({ ...prevData, [name]: value }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
     const studyGroupData = {
-      course_name: formData.courseName,
-      course_code: formData.courseCode,
+      courseName: formData.courseName,
+      courseCode: formData.courseCode,
       term: formData.term,
       description: formData.description,
-      meeting_date: formData.meetingDate,
-      meeting_time: formData.meetingTime,
+      meetingDate: formData.meetingDate,
+      meetingTime: formData.meetingTime,
       location: formData.location,
-      max_members: formData.maxMembers,
+      maxMembers: Number(formData.maxMembers),
     };
     console.log("Study Group Data:", studyGroupData);
-    // More to add here
   }
 
   const terms = [
@@ -78,6 +78,13 @@ export default function NewGroupScreen() {
           </div>
         </div>
 
+        {error && (
+          <div className="w-full p-3 rounded-lg bg-red-50 dark:bg-red-900/30
+                          text-red-600 dark:text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
         <form className="w-full space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <label htmlFor="courseName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -88,8 +95,8 @@ export default function NewGroupScreen() {
               id="courseName"
               name="courseName"
               placeholder="e.g. Calculus 3"
-              value={formData.courseCode}
-              onChange={handleInputChange} //FIXME write handleInputChange function
+              value={formData.courseName}
+              onChange={handleInputChange}
               minLength={2}
               required
             />
@@ -101,21 +108,21 @@ export default function NewGroupScreen() {
               type="text"
               id="courseCode"
               name="courseCode"
-              placeholder="e.g. MAC 2313"
+              placeholder="e.g. MAC2313"
               value={formData.courseCode}
-              onChange={handleInputChange} //FIXME write handleInputChange function
+              onChange={handleInputChange}
               minLength={2}
               required
             />
 
-            <label htmlFor="courseTerm" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="term" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Term
             </label>
             <select
               id="term"
               name="term"
               value={formData.term}
-              //onChange={handleInputChange} //FIXME write handleInputChange function
+              onChange={handleInputChange}
               className={'w-full px-3 py-2 border rounded-md'}
             >
               {terms.map((term) => (
@@ -133,7 +140,8 @@ export default function NewGroupScreen() {
               name="description"
               placeholder="Write a short description of your group"
               value={formData.description}
-              rows={4}
+              onChange={handleInputChange}
+              rows={3}
               minLength={15}
               maxLength={200}
               className="w-full px-3 py-2 border rounded-md"
@@ -146,8 +154,8 @@ export default function NewGroupScreen() {
               type="date"
               id="meetingDate"
               name="meetingDate"
-              value={formData.courseCode}
-              onChange={handleInputChange} //FIXME write handleInputChange function
+              value={formData.meetingDate}
+              onChange={handleInputChange}
               required
             />
 
@@ -159,7 +167,7 @@ export default function NewGroupScreen() {
               id="meetingTime"
               name="meetingTime"
               value={formData.meetingTime}
-              onChange={handleInputChange} //FIXME write handleInputChange function
+              onChange={handleInputChange}
             />
 
             <label htmlFor="location" className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -171,13 +179,24 @@ export default function NewGroupScreen() {
               name="location"
               placeholder="e.g. Martson Basement, Library West, etc." //FIXME Consider a dropdown for this
               value={formData.location}
-              onChange={handleInputChange} //FIXME write handleInputChange function
+              onChange={handleInputChange}
               minLength={5} 
             />
+
+            <label htmlFor="maxMembers" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Max Number of Members (4-6)
+            </label>
+            <FormInput
+              type="number"
+              id="maxMembers"
+              name="maxMembers"
+              value={formData.maxMembers}
+              onChange={handleInputChange}
+              min={4}
+              max={6}
+            />
           </div>
-        </form>
-        
-        <Button
+          <Button
           type="submit"
           variant="primary"
           fullWidth
@@ -186,6 +205,9 @@ export default function NewGroupScreen() {
         >
           Create
         </Button>
+        </form>
+        
+        
       </div>
     </>
   );
