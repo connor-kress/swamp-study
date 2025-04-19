@@ -144,19 +144,27 @@ export default function NewGroupScreen() {
               required
             />
 
-            {selectedClass.length > 0 ? (
+            {/* Show loading state when searching */}
+            {searchQuery.length === 0 && (
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+              Start typing to search for a class...
+              </div>
+            )}
+
+            {/* Show search results when classes are found */}
+            {selectedClass.length > 0 && (
               <>
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 {selectedClass.length} class(es) found matching your search.
               </div>
 
               <div className="space-y-2">
-                {selectedClass.map((cls = selectedClass[0]) => (
+                {selectedClass.map(cls => (
                 <div
                   key={cls.id}
                   className="p-4 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                   onClick={() => {
-                  setFormData((prevData) => ({
+                  setFormData(prevData => ({
                     ...prevData,
                     className: cls.className,
                     classCode: cls.classCode,
@@ -165,55 +173,49 @@ export default function NewGroupScreen() {
                   setSearchQuery(cls.classCode);
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setFormData((prevData) => ({
-                        ...prevData,
-                        className: cls.className,
-                        classCode: cls.classCode,
-                        term: cls.term,
-                      }));
-                      setSearchQuery(cls.classCode);
-                    }
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setFormData(prevData => ({
+                    ...prevData,
+                    className: cls.className,
+                    classCode: cls.classCode,
+                    term: cls.term,
+                    }));
+                    setSearchQuery(cls.classCode);
+                  }
                   }}
                   tabIndex={0}
                   role="button"
                 >
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                    {cls.className}
+                  {cls.className}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Class code: {cls.classCode}
+                  Class code: {cls.classCode}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Description: {cls.classDescription}
+                  Description: {cls.classDescription}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Professor: {cls.professor}
+                  Professor: {cls.professor}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Term: {cls.term}
+                  Term: {cls.term}
                   </p>
                 </div>
-              ))}
+                ))}
               </div>
               </>
-            ) : (searchQuery.length > 0 ? (
-              <>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  No classes found matching your search. <Link to="/new-class"
-                  className="text-blue-600 dark:text-blue-400 hover:underline">
-                  Create a new class here
-                  </Link>
-                </div>
-              </>
-            ) : 
-              <>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                Start typing to search for a class...
-                </div>
-                
-              </> 
+            )}
+
+            {/* Show "no results" when searching but no classes found */}
+            {searchQuery.length > 0 && selectedClass.length === 0 && (
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+              No classes found matching your search.{' '}
+              <Link to="/new-class" className="text-blue-600 dark:text-blue-400 hover:underline">
+                Create a new class here
+              </Link>
+              </div>
             )}
 
             <label htmlFor="term" className="text-sm font-medium text-gray-700 dark:text-gray-300">
