@@ -1,5 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { GroupSchema, Group, UserGroupSchema, UserGroupRole } from "../types";
+import {
+  GroupSchema,
+  Group,
+  UserGroupSchema,
+  UserGroupRole,
+  UserGroup,
+} from "../types";
 
 export async function getAllGroups(
   server: FastifyInstance,
@@ -162,6 +168,26 @@ export async function removeUserFromGroup(
       [user_id, group_id]
     );
     return rowCount !== null && rowCount > 0;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getUserGroupRole(
+  server: FastifyInstance,
+  user_id: number,
+  group_id: number,
+): Promise<UserGroup | null> {
+  const client = await server.pg.connect();
+  try {
+    const { rows } = await client.query(`
+      SELECT user_id, group_id, group_role, created_at
+      FROM user_groups
+      WHERE user_id = $1 AND group_id = $2`,
+      [user_id, group_id]
+    );
+    if (rows.length === 0) return null;
+    return UserGroupSchema.parse(rows[0]);
   } finally {
     client.release();
   }
