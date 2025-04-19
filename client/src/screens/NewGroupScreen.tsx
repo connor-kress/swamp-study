@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, NavigateFunction, useNavigate } from "react-router";
+import { Link } from "react-router";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
 import FormInput from "../components/FormInput";
@@ -167,7 +167,7 @@ export default function NewGroupScreen() {
               </div>
 
               <div className="space-y-2">
-              {selectedClass.map((cls) => (
+              {selectedClass.map((cls = selectedClass[0]) => (
               <div
                 key={cls.id}
                 className="p-4 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -181,6 +181,21 @@ export default function NewGroupScreen() {
                 }));
                 setSearchQuery(cls.classCode);
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      className: cls.className,
+                      classCode: cls.classCode,
+                      description: cls.classDescription,
+                      term: cls.term,
+                    }));
+                    setSearchQuery(cls.classCode);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
               >
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 {cls.className}
