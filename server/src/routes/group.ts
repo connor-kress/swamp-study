@@ -239,6 +239,11 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
   server.delete("/:group_id/user/:user_id", async (request, reply) => {
     const { group_id, user_id } = getGroupAndUserIdParams(request, reply);
     if (!group_id || !user_id) return;
+    let session = await verifyAccessToken(request, reply);
+    if (!session) {
+      console.log("Unauthorized DELETE /group/:group_id/user/:user_id");
+      return;
+    }
 
     // Get the user's group role
     let userGroup;
@@ -255,11 +260,6 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
     }
 
     // Enforce permissions
-    let session = await verifyAccessToken(request, reply);
-    if (!session) {
-      console.log("Unauthorized DELETE /group/:group_id/user/:user_id");
-      return;
-    }
     if (session.user.role !== "admin" && session.user.id !== user_id) {
       const currentUserRole = await getUserGroupRole(
         server, session.user.id, group_id
