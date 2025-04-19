@@ -1,10 +1,13 @@
 import { FastifyInstance } from "fastify";
 import {
-  GroupSchema,
   Group,
-  UserGroupSchema,
-  UserGroupRole,
+  GroupSchema,
+  User,
   UserGroup,
+  UserGroupRole,
+  UserGroupRoleEnum,
+  UserGroupSchema,
+  UserSchema,
 } from "../types";
 
 export async function getAllGroups(
@@ -188,6 +191,43 @@ export async function getUserGroupRole(
     );
     if (rows.length === 0) return null;
     return UserGroupSchema.parse(rows[0]);
+  } finally {
+    client.release();
+  }
+}
+
+export type UserWithGroupRole = {
+  user: User,
+  role: UserGroupRole,
+};
+
+export async function getUsersInGroup(
+  server: FastifyInstance,
+  group_id: number,
+): Promise<UserWithGroupRole[]> {
+  const client = await server.pg.connect();
+  try {
+    const { rows } = await client.query(`
+      SELECT
+        u.id, u.email, u.name, u.grad_year, u.role, u.created_at,
+        ug.group_role
+      FROM user_groups ug
+      JOIN users u ON ug.user_id = u.id
+      WHERE ug.group_id = $1
+      ORDER BY ug.group_role DESC, u.name DESC`,
+      [group_id]
+    );
+    return rows.map(row => ({
+      user: UserSchema.parse({
+        id: row.id,
+        email: row.email,
+        name: row.name,
+        grad_year: row.grad_year,
+        role: row.role,
+        created_at: row.created_at,
+      }),
+      role: UserGroupRoleEnum.parse(row.group_role),
+    }));
   } finally {
     client.release();
   }
