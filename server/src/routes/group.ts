@@ -1,9 +1,19 @@
-import { FastifyPluginAsync } from "fastify";
+import { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 
-import { createGroupWithOwner, deleteGroup, getAllGroups, getGroupById, getUserGroupRole, NewGroupInput } from "../db/group";
-import { GroupSchema } from "../types";
-import { verifyAccessToken } from "./auth";
+import {
+  addUserToGroup,
+  createGroupWithOwner,
+  deleteGroup,
+  getAllGroups,
+  getGroupById,
+  getUserGroupRole,
+  NewGroupInput,
+  removeUserFromGroup,
+} from "../db/group";
+import { GroupSchema, SessionWithUser, UserGroupRoleEnum } from "../types";
+import { verifyAccessToken, verifyAdminAccessToken } from "./auth";
+import { getUserById } from "../db/queries";
 
 export const idParamsSchema = z.object({
   id: z.string().transform((val) => parseInt(val, 10)),
@@ -13,6 +23,27 @@ export const CreateGroupInputSchema = GroupSchema.omit({
   id: true,
   created_at: true,
 });
+
+function getGroupAndUserIdParams(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): { group_id: number, user_id: number }
+  | { group_id: null, user_id: null } {
+    const groupIdParsed = idParamsSchema.safeParse({
+      id: (request.params as any).group_id,
+    });
+    const userIdParsed = idParamsSchema.safeParse({
+      id: (request.params as any).user_id,
+    });
+    if (!groupIdParsed.success || !userIdParsed.success) {
+      reply.code(400).send({ error: "Invalid group_id or user_id." });
+      return { group_id: null, user_id: null };
+    }
+    return {
+      group_id: groupIdParsed.data.id,
+      user_id: userIdParsed.data.id,
+    };
+}
 
 const groupRoutes: FastifyPluginAsync = async (server) => {
   // GET /group/ - Get all groups.
@@ -142,19 +173,8 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
 
   // GET /group/:group_id/user/:user_id - Get a user's group association.
   server.get("/:group_id/user/:user_id", async (request, reply) => {
-    const groupIdParsed = idParamsSchema.safeParse({
-      id: (request.params as any).group_id
-    });
-    const userIdParsed = idParamsSchema.safeParse({
-      id: (request.params as any).user_id
-    });
-    if (!groupIdParsed.success || !userIdParsed.success) {
-      reply.status(400);
-      return { error: "Invalid group_id or user_id." };
-    }
-    const group_id = groupIdParsed.data.id;
-    const user_id = userIdParsed.data.id;
-
+    const { group_id, user_id } = getGroupAndUserIdParams(request, reply);
+    if (!group_id || !user_id) return;
     const session = await verifyAccessToken(request, reply);
     if (!session) {
       console.log("Unauthorized GET /group/:group_id/user/:user_id");
@@ -164,18 +184,111 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
     try {
       const userGroup = await getUserGroupRole(server, user_id, group_id);
       if (!userGroup) {
-        reply.status(404);
+        reply.code(404);
         return { error: "No user found in group." };
       }
       return userGroup;
     } catch (error) {
-      reply.status(500);
+      reply.code(500);
       console.error(error);
       return { error: "Database error occurred." };
     }
   });
 
-  // TODO: add to group, remove from group, get all users in group
+  const AddUserToGroupBodySchema = z.object({
+    role: UserGroupRoleEnum,
+  });
+
+  // POST /group/:group_id/user/:user_id - Add a user to a group.
+  server.post("/:group_id/user/:user_id", async (request, reply) => {
+    const { group_id, user_id } = getGroupAndUserIdParams(request, reply);
+    if (!group_id || !user_id) return;
+    const parsedBody = AddUserToGroupBodySchema.safeParse(request.body);
+    if (!parsedBody.success) {
+      reply.code(400);
+      return { error: parsedBody.error.flatten() };
+    }
+    const { role } = parsedBody.data;
+
+    let session: SessionWithUser | null;
+    if (role === "owner") {
+      session = await verifyAdminAccessToken(request, reply);
+    } else {
+      session = await verifyAccessToken(request, reply);
+    }
+    if (!session) {
+      console.log("Unauthorized POST /group/:group_id/user/:user_id");
+      return;
+    }
+
+    try {
+      const userGroup = await addUserToGroup(server, user_id, group_id, role);
+      reply.code(201);
+      return userGroup;
+    } catch (error) {
+      reply.code(500);
+      console.error(error);
+      return { error: "Database error occurred." };
+    }
+  });
+
+  // DELETE /group/:group_id/user/:user_id - Remove a user from a group.
+  // Only the group owner, an admin, or the user themselves can remove a
+  // user from the group.
+  server.delete("/:group_id/user/:user_id", async (request, reply) => {
+    const { group_id, user_id } = getGroupAndUserIdParams(request, reply);
+    if (!group_id || !user_id) return;
+
+    // Get the user's group role
+    let userGroup;
+    try {
+      userGroup = await getUserGroupRole(server, user_id, group_id);
+      if (!userGroup) {
+        reply.code(404);
+        return { error: "No user found in group." };
+      }
+    } catch (error) {
+      reply.code(500);
+      console.error(error);
+      return { error: "Database error occurred." };
+    }
+
+    // Enforce permissions
+    let session = await verifyAccessToken(request, reply);
+    if (!session) {
+      console.log("Unauthorized DELETE /group/:group_id/user/:user_id");
+      return;
+    }
+    if (session.user.role !== "admin" && session.user.id !== user_id) {
+      const currentUserRole = await getUserGroupRole(
+        server, session.user.id, group_id
+      );
+      if (!currentUserRole || currentUserRole.group_role !== "owner") {
+        console.log("Unauthorized DELETE /group/:group_id/user/:user_id");
+        reply.code(403);
+        return { error: "Invalid credentials for action." };
+      }
+    }
+
+    try {
+      const removed = await removeUserFromGroup(server, user_id, group_id);
+      if (!removed) {
+        // This should not happen as we already verified they are in the group
+        throw new Error("Unknown database error removing user from group.");
+      }
+      reply.code(200);
+      return {
+        status: "success",
+        message: `User ${user_id} removed from group ${group_id}.`,
+      };
+    } catch (error) {
+      reply.code(500);
+      console.error(error);
+      return { error: "Database error occurred." };
+    }
+  });
+
+  // TODO: get all users in group
 };
 
 export default groupRoutes;
