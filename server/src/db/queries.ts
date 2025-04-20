@@ -63,13 +63,13 @@ export async function getUserByEmail(
   }
 }
 
-export type NewUserInput = Omit<
+export type HashedUserInput = Omit<
   User, "id" | "created_at"
 > & { password_hash: string };
 
 export async function createUser(
   server: FastifyInstance,
-  user: NewUserInput,
+  user: HashedUserInput,
 ): Promise<User> {
   const client = await server.pg.connect();
   try {

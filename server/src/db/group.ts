@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import {
   Group,
+  NewGroupInput,
   GroupSchema,
   User,
   UserGroup,
@@ -65,8 +66,6 @@ export async function getGroupsByCourseId(
     client.release();
   }
 }
-
-export type NewGroupInput = Omit<Group, "id" | "created_at">;
 
 export async function createGroupWithOwner(
   server: FastifyInstance,
@@ -155,8 +154,7 @@ export async function addUserToGroup(
       RETURNING user_id, group_id, group_role, created_at`,
       [user_id, group_id, group_role]
     );
-    return UserGroupSchema.parse(rows[0]);
-  } finally {
+    return UserGroupSchema.parse(rows[0]); } finally {
     client.release();
   }
 }

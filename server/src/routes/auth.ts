@@ -16,7 +16,7 @@ import {
   getSessionByAccessToken,
   getSessionByRefreshToken,
   getUserByEmail,
-  NewUserInput,
+  HashedUserInput,
   updateSessionTokens,
   upsertPendingVerification,
 } from "../db/queries";
@@ -321,7 +321,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       console.log("Unable to delete pending verification");
     }
 
-    const userInput: NewUserInput = {
+    const userInput: HashedUserInput = {
       email, name, grad_year,
       role: "member",
       password_hash: await hashPassword(password),

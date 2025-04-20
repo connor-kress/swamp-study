@@ -5,9 +5,9 @@ import {
   createUser,
   deleteUser,
   getUserById,
-  NewUserInput,
+  HashedUserInput,
 } from "../db/queries";
-import { CreateUserInputSchema } from "../types";
+import { NewUserInputSchema } from "../types";
 import { hashPassword } from "../util/crypt";
 import { verifyAccessToken, verifyAdminAccessToken } from "./auth";
 
@@ -61,13 +61,13 @@ const userRoutes: FastifyPluginAsync = async (server) => {
       console.log("Unauthorized POST /user/");
       return;
     }
-    const parsed = CreateUserInputSchema.safeParse(request.body);
+    const parsed = NewUserInputSchema.safeParse(request.body);
     if (!parsed.success) {
       reply.code(400);
       return { error: parsed.error.flatten() };
     }
     const { email, password, name, grad_year, role } = parsed.data;
-    const userInput: NewUserInput = {
+    const userInput: HashedUserInput = {
       email, name, grad_year, role,
       password_hash: await hashPassword(password),
     };

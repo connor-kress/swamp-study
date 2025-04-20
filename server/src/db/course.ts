@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { Course, CourseSchema } from "../types";
+import { Course, CourseSchema, NewCourseInput } from "../types";
 
 export async function getAllCourses(
   server: FastifyInstance,
@@ -35,8 +35,6 @@ export async function getCourseById(
     client.release();
   }
 }
-
-export type NewCourseInput = Omit<Course, "id" | "created_at">;
 
 export async function createCourse(
   server: FastifyInstance,

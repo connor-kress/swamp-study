@@ -9,19 +9,17 @@ import {
   getGroupById,
   getUserGroupRole,
   getUsersInGroup,
-  NewGroupInput,
   removeUserFromGroup,
 } from "../db/group";
-import { GroupSchema, SessionWithUser, UserGroupRoleEnum } from "../types";
+import {
+  NewGroupInputSchema,
+  SessionWithUser,
+  UserGroupRoleEnum,
+} from "../types";
 import { verifyAccessToken, verifyAdminAccessToken } from "./auth";
 
 export const idParamsSchema = z.object({
   id: z.string().transform((val) => parseInt(val, 10)),
-});
-
-export const CreateGroupInputSchema = GroupSchema.omit({
-  id: true,
-  created_at: true,
 });
 
 function getGroupAndUserIdParams(
@@ -100,12 +98,12 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
 
   // POST /group/ - Create a group.
   server.post("/", async (request, reply) => {
-    const parsed = CreateGroupInputSchema.safeParse(request.body);
+    const parsed = NewGroupInputSchema.safeParse(request.body);
     if (!parsed.success) {
       reply.code(400);
       return { error: parsed.error.flatten() };
     }
-    const groupInput: NewGroupInput = parsed.data;
+    const groupInput = parsed.data;
     const session = await verifyAccessToken(request, reply);
     if (!session) {
       console.log("Unauthorized POST /group/");

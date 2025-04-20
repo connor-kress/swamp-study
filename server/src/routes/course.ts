@@ -6,18 +6,12 @@ import {
   deleteCourse,
   getAllCourses,
   getCourseById,
-  NewCourseInput,
 } from "../db/course";
-import { CourseSchema } from "../types";
 import { verifyAccessToken, verifyAdminAccessToken } from "./auth";
+import { NewCourseInputSchema } from "../types";
 
 export const idParamsSchema = z.object({
   id: z.string().transform((val) => parseInt(val, 10)),
-});
-
-export const CreateCourseInputSchema = CourseSchema.omit({
-  id: true,
-  created_at: true,
 });
 
 const courseRoutes: FastifyPluginAsync = async (server) => {
@@ -66,12 +60,12 @@ const courseRoutes: FastifyPluginAsync = async (server) => {
       console.log("Unauthorized POST /course/");
       return;
     }
-    const parsed = CreateCourseInputSchema.safeParse(request.body);
+    const parsed = NewCourseInputSchema.safeParse(request.body);
     if (!parsed.success) {
       reply.code(400);
       return { error: parsed.error.flatten() };
     }
-    const courseInput: NewCourseInput = parsed.data;
+    const courseInput = parsed.data;
     try {
       const newCourse = await createCourse(server, courseInput);
       reply.code(201);

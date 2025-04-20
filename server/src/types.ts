@@ -28,13 +28,12 @@ export const UserSchema = z.object({
   created_at: DateSchema,
 });
 
-export const CreateUserInputSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-  name: z.string().min(1).max(100),
-  grad_year: z.number().int().positive(),
-  role: z.enum(["admin", "member"]),
-});
+export const NewUserInputSchema = UserSchema.omit({
+  id: true,
+  created_at: true,
+}).and(z.object({
+  password: z.string().min(5).max(255),
+}));
 
 export const UserSessionSchema = z.object({
   id: z.number().int().positive(),
@@ -55,6 +54,11 @@ export const CourseSchema = z.object({
   description: z.string().min(1),
   created_at: DateSchema,
 });
+
+export const NewCourseInputSchema = CourseSchema.omit({
+  id: true,
+  created_at: true,
+})
 
 export const CourseTermEnum = z.enum([
   "fall",
@@ -84,6 +88,11 @@ export const GroupSchema = z.object({
   created_at: DateSchema,
 });
 
+export const NewGroupInputSchema = GroupSchema.omit({
+  id: true,
+  created_at: true,
+});
+
 export const UserGroupSchema = z.object({
   user_id: z.number().int().positive(),
   group_id: z.number().int().positive(),
@@ -92,11 +101,14 @@ export const UserGroupSchema = z.object({
 });
 
 export type User = z.infer<typeof UserSchema>;
-export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 export type UserSession = z.infer<typeof UserSessionSchema>;
 export type Course = z.infer<typeof CourseSchema>;
 export type Group = z.infer<typeof GroupSchema>;
 export type UserGroup = z.infer<typeof UserGroupSchema>;
+
+export type NewUserInput = z.infer<typeof NewUserInputSchema>;
+export type NewCourseInput = z.infer<typeof NewCourseInputSchema>;
+export type NewGroupInput = z.infer<typeof NewGroupInputSchema>;
 
 export type CourseTerm = z.infer<typeof CourseTermEnum>;
 export type UserGroupRole = z.infer<typeof UserGroupRoleEnum>;
