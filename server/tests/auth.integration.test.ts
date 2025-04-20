@@ -8,12 +8,13 @@ import {
 } from "../src/db/queries";
 import { generateNewTokenData } from "../src/routes/auth";
 import { MockEmailService } from "../src/services/email/MockEmailService";
+import { User, UserSchema } from "../src/types";
 
 let server: ReturnType<typeof buildServer>;
 let testDb: TestDb;
 let mockEmailService: MockEmailService;
 
-async function createTestUser(name: string) {
+async function createTestUser(name: string): Promise<User> {
   const createResponse = await server.inject({
     method: "POST",
     url: "/api/user/",
@@ -32,6 +33,8 @@ async function createTestUser(name: string) {
     },
   });
   expect(createResponse.statusCode).toBe(201);
+  const json = JSON.parse(createResponse.payload);
+  return UserSchema.parse(json);
 }
 
 beforeAll(async () => {
