@@ -69,7 +69,7 @@ export async function attemptCreateGroup(
           console.error(err);  // for debugging
           err = null;
         }
-        throw new Error(err || "Unknown error");
+        throw new Error(err ?? "Unknown error");
       }
 
       const data = await response.json();
@@ -102,11 +102,12 @@ export default function NewGroupScreen() {
     groupCreatorContact: "",
   });
 
-  const selectedClass = searchQuery
-    ? mockClasses.filter(group =>
-        group.classCode.toLowerCase().startsWith(searchQuery.toLowerCase())
-      )
-    : [];
+  let selectedClass: typeof mockClasses = [];
+  if (searchQuery) {
+    selectedClass = mockClasses.filter(group =>
+      group.classCode.toLowerCase().startsWith(searchQuery.toLowerCase())
+    );
+  }
 
 
   useEffect(() => {
@@ -181,7 +182,10 @@ export default function NewGroupScreen() {
 
         <form className="w-full space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <label htmlFor="groupName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="groupName"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Group Name
             </label>
             <FormInput
@@ -194,7 +198,10 @@ export default function NewGroupScreen() {
               minLength={2}
               required
             />
-            <label htmlFor="classCode" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="classCode"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Class Code
             </label>
             <FormInput
@@ -224,49 +231,51 @@ export default function NewGroupScreen() {
 
               <div className="space-y-2">
                 {selectedClass.map(cls => (
-                <div
-                  key={cls.id}
-                  className="p-4 border rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                  onClick={() => {
-                  setFormData(prevData => ({
-                    ...prevData,
-                    className: cls.className,
-                    classCode: cls.classCode,
-                    term: cls.term,
-                  }));
-                  setSearchQuery(cls.classCode);
-                  }}
-                  onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setFormData(prevData => ({
-                    ...prevData,
-                    className: cls.className,
-                    classCode: cls.classCode,
-                    term: cls.term,
-                    }));
-                    setSearchQuery(cls.classCode);
-                  }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                >
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                  {cls.className}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Class code: {cls.classCode}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Description: {cls.classDescription}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Professor: {cls.professor}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Term: {cls.term}
-                  </p>
-                </div>
+                  <div
+                    key={cls.id}
+                    className="p-4 border rounded-lg shadow-sm cursor-pointer
+                               hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => {
+                      setFormData(prevData => ({
+                        ...prevData,
+                        className: cls.className,
+                        classCode: cls.classCode,
+                        term: cls.term,
+                      }));
+                      setSearchQuery(cls.classCode);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setFormData(prevData => ({
+                        ...prevData,
+                        className: cls.className,
+                        classCode: cls.classCode,
+                        term: cls.term,
+                        }));
+                        setSearchQuery(cls.classCode);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                  >
+                    <h3 className="text-lg font-semibold
+                                   text-gray-800 dark:text-gray-200">
+                      {cls.className}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Class code: {cls.classCode}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Description: {cls.classDescription}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Professor: {cls.professor}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Term: {cls.term}
+                    </p>
+                  </div>
                 ))}
               </div>
               </>
@@ -275,14 +284,20 @@ export default function NewGroupScreen() {
             {/* Show "no results" when searching but no classes found */}
             {searchQuery.length > 0 && selectedClass.length === 0 && (
               <div className="text-sm text-gray-600 dark:text-gray-400">
-              No classes found matching your search.{' '}
-              <Link to="/new-class" className="text-blue-600 dark:text-blue-400 hover:underline">
-                Create a new class here
-              </Link>
+              No classes found matching your search.{" "}
+                <Link
+                  to="/new-class"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Create a new class here
+                </Link>
               </div>
             )}
 
-            <label htmlFor="term" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="term"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Term
             </label>
             <TermDropdown
@@ -292,7 +307,10 @@ export default function NewGroupScreen() {
               onChange={handleInputChange}
             />
 
-            <label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="description"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Description
             </label>
             <textarea
@@ -307,7 +325,10 @@ export default function NewGroupScreen() {
               className="w-full px-3 py-2 border rounded-md"
             />
 
-            <label htmlFor="meetingDay" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="meetingDay"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Meeting Day
             </label>
             <select
@@ -324,16 +345,11 @@ export default function NewGroupScreen() {
                 </option>
               ))}
             </select>
-            {/* <FormInput
-              type="date"
-              id="meetingDay"
-              name="meetingDay"
-              value={formData.meetingDay}
-              onChange={handleInputChange}
-              required
-            /> */}
 
-            <label htmlFor="meetingTime" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="meetingTime"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Meeting Time
             </label>
             <FormInput
@@ -344,20 +360,26 @@ export default function NewGroupScreen() {
               onChange={handleInputChange}
             />
 
-            <label htmlFor="location" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="location"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Location
             </label>
             <FormInput
               type="text"
               id="location"
               name="location"
-              placeholder="e.g. Martson Basement, Library West, etc." //FIXME Consider a dropdown for this
+              placeholder="e.g. Martson Basement, Library West, etc."
               value={formData.location}
               onChange={handleInputChange}
               minLength={5} 
             />
 
-            <label htmlFor="groupCreatorContact" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="groupCreatorContact"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Contact Information
             </label>
             <FormInput
@@ -371,11 +393,11 @@ export default function NewGroupScreen() {
             />
           </div>
           <Button
-          type="submit"
-          variant="primary"
-          fullWidth
-          isLoading={isLoading}
-          disabled={isLoading}
+            type="submit"
+            variant="primary"
+            fullWidth
+            isLoading={isLoading}
+            disabled={isLoading}
           >
             Create
           </Button>
