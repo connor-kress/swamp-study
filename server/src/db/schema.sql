@@ -37,6 +37,7 @@ CREATE TABLE courses (
     id SERIAL PRIMARY KEY,
     code VARCHAR(10) NOT NULL,
     name VARCHAR(100) NOT NULL,
+    professor VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

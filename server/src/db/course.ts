@@ -7,7 +7,7 @@ export async function getAllCourses(
   const client = await server.pg.connect();
   try {
     const { rows } = await client.query(`
-      SELECT id, code, name, description, created_at
+      SELECT id, code, name, professor, description, created_at
       FROM courses
       ORDER BY code DESC
     `);
@@ -24,7 +24,7 @@ export async function getCourseById(
   const client = await server.pg.connect();
   try {
     const { rows } = await client.query(`
-      SELECT id, code, name, description, created_at
+      SELECT id, code, name, professor, description, created_at
       FROM courses
       WHERE id = $1`,
       [id]
@@ -45,10 +45,10 @@ export async function createCourse(
   const client = await server.pg.connect();
   try {
     const { rows } = await client.query(`
-      INSERT INTO courses (code, name, description)
-      VALUES ($1, $2, $3)
-      RETURNING id, code, name, description, created_at`,
-      [course.code, course.name, course.description]
+      INSERT INTO courses (code, name, professor, description)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, code, name, professor, description, created_at`,
+      [course.code, course.name, course.professor, course.description]
     );
     return CourseSchema.parse(rows[0]);
   } finally {

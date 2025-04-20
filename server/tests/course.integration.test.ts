@@ -31,6 +31,7 @@ describe("Course Routes - Integration (Happy Path)", () => {
       payload: {
         code: "CEN3031",
         name: "Software Engineering",
+        professor: "Neha",
         description: "Coding...",
       },
     });

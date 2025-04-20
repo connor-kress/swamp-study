@@ -50,7 +50,8 @@ export const UserSessionSchema = z.object({
 export const CourseSchema = z.object({
   id: z.number().int().positive(),
   code: z.string().min(7).max(10), // e.g. "CEN3031"
-  name: z .string().min(1).max(100),
+  name: z .string().min(1).max(100), // aka title
+  professor: z .string().min(1).max(100),
   description: z.string().min(1),
   created_at: DateSchema,
 });

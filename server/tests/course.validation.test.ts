@@ -23,6 +23,7 @@ describe("Course Routes - Input Validation", () => {
       payload: {
         code: "CEN3031",
         name: "Software Engineering",
+        professor: "Neha",
         description: "Coding...",
       },
     });
@@ -42,7 +43,7 @@ describe("Course Routes - Input Validation", () => {
         "x-test-user-id": "69",
       },
       payload: {
-        // Missing "code" and "name"
+        // Missing "code", "name", etc.
         description: "A course",
       },
     });
@@ -51,6 +52,7 @@ describe("Course Routes - Input Validation", () => {
     expect(body.error).toHaveProperty("fieldErrors");
     expect(body.error.fieldErrors).toHaveProperty("code");
     expect(body.error.fieldErrors).toHaveProperty("name");
+    expect(body.error.fieldErrors).toHaveProperty("professor");
   });
 
   it("DELETE /api/course/:id should return 400 for non-numeric id", async () => {
