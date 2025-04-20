@@ -1,5 +1,6 @@
 import React from "react";
 import { useState } from "react";
+import { NavigateFunction, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
@@ -7,7 +8,6 @@ import SwampStudy from "../components/SwampStudy";
 import TermDropdown from "../components/TermDropdown";
 
 type classData = {
-    id: number;
     className: string;
     classCode: string;
     classDescription: string;
@@ -15,9 +15,47 @@ type classData = {
     term: string;
 };
 
+export async function attemptAddClass(
+    classData: classData,
+    navigate: NavigateFunction,
+    setError: React.Dispatch<React.SetStateAction<string>>,
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+) {
+    setError("");
+    setIsLoading(true);
+    try {
+        const response = await fetch(`/api/course`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(classData),
+        });
+
+        if (!response.ok) {
+            let err = (await response.json())?.error;
+            if (typeof err !== "string") {
+                console.error(err);  // for debugging
+                err = null;
+            }
+            throw new Error(err || "Unknown error");
+        }
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+        console.log("Class added successfully:", data);
+        navigate("/new-group");
+    } catch (err) {
+        console.error("Error adding class:", err);
+        setError(err instanceof Error ? err.message : "Adding class failed");
+    } finally {
+        setIsLoading(false);
+    }
+}
+
 export default function NewClassScreen() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState<classData>({
-        id: 0,
         className: "",
         classCode: "",
         classDescription: "",
@@ -47,6 +85,7 @@ export default function NewClassScreen() {
             term: formData.term,
         };
         console.log(newClassData);
+        attemptAddClass(newClassData, navigate, setError, setIsLoading);
     }
     
     return (

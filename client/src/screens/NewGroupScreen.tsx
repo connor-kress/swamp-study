@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, NavigateFunction, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
 import FormInput from "../components/FormInput";
@@ -46,8 +46,48 @@ const mockClasses = [
   },
 ];
 
+export async function attemptCreateGroup(
+  groupData: StudyGroupFormData,
+  navigate: NavigateFunction,
+  setError: React.Dispatch<React.SetStateAction<string>>,
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+) {
+  setError("");
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/group`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(groupData),
+      });
+
+      if (!response.ok) {
+        let err = (await response.json())?.error;
+        if (typeof err !== "string") {
+          console.error(err);  // for debugging
+          err = null;
+        }
+        throw new Error(err || "Unknown error");
+      }
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      console.log("Group creation successful:", data);
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Error creating group:", err);
+      setError(err instanceof Error ? err.message : "Group creation failed");
+    } finally {
+      setIsLoading(false);
+    }
+}
+
 export default function NewGroupScreen() {
-  // Redirect to login screen when signed out
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState<StudyGroupFormData>({
     groupName: "",
@@ -81,9 +121,6 @@ export default function NewGroupScreen() {
     }
   }, [searchQuery, formData.classCode]);
 
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
     setFormData(prevData => ({ ...prevData, [name]: value }));
@@ -106,6 +143,7 @@ export default function NewGroupScreen() {
       groupCreatorContact: formData.groupCreatorContact,
     };
     console.log("Study Group Data:", studyGroupData);
+    attemptCreateGroup(studyGroupData, navigate, setError, setIsLoading);
   }
 
   const daysOfWeek = [
