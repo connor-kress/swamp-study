@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, NavigateFunction, useNavigate } from "react-router";
+
+import Button from "../components/Button";
+import FormInput from "../components/FormInput";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
-import FormInput from "../components/FormInput";
-import Button from "../components/Button";
 import TermDropdown from "../components/TermDropdown";
 
 type StudyGroupFormData = {
@@ -17,7 +18,7 @@ type StudyGroupFormData = {
   meetingTime: string;
   location: string;
   groupCreatorContact: string;
-}
+};
 
 const mockClasses = [
   { 
@@ -66,7 +67,7 @@ export async function attemptCreateGroup(
       if (!response.ok) {
         let err = (await response.json())?.error;
         if (typeof err !== "string") {
-          console.error(err);  // for debugging
+          console.error(err);
           err = null;
         }
         throw new Error(err ?? "Unknown error");
@@ -111,7 +112,8 @@ export default function NewGroupScreen() {
 
 
   useEffect(() => {
-    // Only reset form data if searchQuery is empty and we had previous class data
+    // Only reset form data if searchQuery is empty
+    // and we had previous class data
     if (formData.classCode && searchQuery !== formData.classCode) {
       setFormData(prevData => ({
         ...prevData,
@@ -122,7 +124,10 @@ export default function NewGroupScreen() {
     }
   }, [searchQuery, formData.classCode]);
 
-  function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
+  function handleInputChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement
+                                          | HTMLSelectElement>
+  ) {
     const { name, value } = e.target;
     setFormData(prevData => ({ ...prevData, [name]: value }));
   }
