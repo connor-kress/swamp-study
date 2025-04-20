@@ -2,11 +2,11 @@ import { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 
 import {
-  getAllCourses,
   createCourse,
   deleteCourse,
-  NewCourseInput,
+  getAllCourses,
   getCourseById,
+  NewCourseInput,
 } from "../db/course";
 import { CourseSchema } from "../types";
 import { verifyAccessToken, verifyAdminAccessToken } from "./auth";

@@ -1,9 +1,9 @@
 import fp from "fastify-plugin";
 import { FastifyInstance } from "fastify";
-import { EmailService } from "../services/email/EmailService";
-import { SendGridEmailService } from "../services/email/SendGridEmailService";
-import { MockEmailService } from "../services/email/MockEmailService";
 import config from "../config";
+import { EmailService } from "../services/email/EmailService";
+import { MockEmailService } from "../services/email/MockEmailService";
+import { SendGridEmailService } from "../services/email/SendGridEmailService";
 
 declare module "fastify" {
   interface FastifyInstance {
