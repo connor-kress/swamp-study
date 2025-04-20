@@ -62,7 +62,10 @@ describe("Authentication Integration", () => {
     const loginResponse = await server.inject({
       method: "POST",
       url: "/api/auth/login",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-test-override-rate-limit": "1",
+      },
       payload: {
         email: `${name}@ufl.edu`,
         password: "wrongpassword",
@@ -80,7 +83,10 @@ describe("Authentication Integration", () => {
     const loginResponse = await server.inject({
       method: "POST",
       url: "/api/auth/login",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-test-override-rate-limit": "1",
+      },
       payload: {
         email: `${name}@ufl.edu`,
         password: "password123",
@@ -116,7 +122,10 @@ describe("Authentication Integration", () => {
     const loginResponse = await server.inject({
       method: "POST",
       url: "/api/auth/login",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-test-override-rate-limit": "1",
+      },
       payload: {
         email: `${name}@ufl.edu`,
         password: "password123",

@@ -157,6 +157,11 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     }
     const { email, password } = parsed.data;
 
+    if (!verifyRateLimit(request, reply, rateLimitConfig.login)) {
+      console.log(`Rate limited ${request.ip} (login request)`);
+      return;
+    }
+
     try {
       const passwordHash = await getPasswordHashByEmail(server, email);
       if (!passwordHash) {

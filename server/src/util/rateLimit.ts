@@ -8,6 +8,7 @@ type RateLimitInfo = {
 type RateLimitConfig = {
   requestSignupCode: RateLimitInfo,
   register: RateLimitInfo,
+  login: RateLimitInfo,
 };
 
 export const rateLimitConfig: RateLimitConfig = {
@@ -15,14 +16,21 @@ export const rateLimitConfig: RateLimitConfig = {
     ipRequestCounts: new Map(),
     rateLimit: {
       timeout: 15 * 60 * 1000, // 15 minutes
-      maxCount: 3
+      maxCount: 3,
     },
   },
   register: {
     ipRequestCounts: new Map(),
     rateLimit: {
       timeout: 15 * 60 * 1000, // 15 minutes
-      maxCount: 9
+      maxCount: 9,
+    },
+  },
+  login: {
+    ipRequestCounts: new Map(),
+    rateLimit: {
+      timeout: 15 * 60 * 1000, // 15 minutes
+      maxCount: 20,
     },
   },
 };

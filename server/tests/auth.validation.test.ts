@@ -31,7 +31,10 @@ describe("Auth Routes - Input Validation", () => {
     const response = await server.inject({
       method: "POST",
       url: "/api/auth/login",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-test-override-rate-limit": "1",
+      },
       // Missing the required "password" field
       payload: { email: "test@example.com" },
     });
