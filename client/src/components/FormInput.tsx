@@ -74,12 +74,12 @@ export default function FormInput({
 
   if (passwordToggle) {
     return (
-      <div className="relative">
+      <div className="relative flex items-center">
         {input}
         <button
           type="button"
           onClick={onPasswordToggle}
-          className="absolute right-2 top-1/6 -translate-y-1/2
+          className="absolute right-3 flex items-center justify-center
                      p-1.5 rounded-md
                      hover:bg-gray-100 dark:hover:bg-gray-700
                      focus:outline-none focus:ring-2 focus:ring-blue-500
