@@ -79,7 +79,7 @@ export default function FormInput({
         <button
           type="button"
           onClick={onPasswordToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2
+          className="absolute right-2 top-1/6 -translate-y-1/2
                      p-1.5 rounded-md
                      hover:bg-gray-100 dark:hover:bg-gray-700
                      focus:outline-none focus:ring-2 focus:ring-blue-500
