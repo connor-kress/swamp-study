@@ -6,8 +6,9 @@ import FormInput from "../components/FormInput";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
 import TermDropdown from "../components/TermDropdown";
+import { useAuthFetch } from "../hooks/useAuthFetch";
 
-type StudyGroupFormData = {
+type GroupData = {
   groupName: string;
   className: string;
   classCode: string;
@@ -48,49 +49,51 @@ const mockClasses = [
 ];
 
 export async function attemptCreateGroup(
-  groupData: StudyGroupFormData,
+  groupData: GroupData,
+  authFetch: ReturnType<typeof useAuthFetch>,
   navigate: NavigateFunction,
   setError: React.Dispatch<React.SetStateAction<string>>,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-) {
+): Promise<void> {
   setError("");
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/group`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(groupData),
-      });
+  setIsLoading(true);
+  try {
+    const response = await authFetch("/api/group", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(groupData),
+    });
 
-      if (!response.ok) {
-        let err = (await response.json())?.error;
-        if (typeof err !== "string") {
-          console.error(err);
-          err = null;
-        }
-        throw new Error(err ?? "Unknown error");
+    if (!response.ok) {
+      let err = (await response.json())?.error;
+      if (typeof err !== "string") {
+        console.error(err);
+        err = null;
       }
-
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      console.log("Group creation successful:", data);
-      navigate("/dashboard");
-    } catch (err) {
-      console.error("Error creating group:", err);
-      setError(err instanceof Error ? err.message : "Group creation failed");
-    } finally {
-      setIsLoading(false);
+      throw new Error(err ?? "Unknown error");
     }
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    console.log("Group creation successful:", data);
+    navigate("/dashboard");
+  } catch (err) {
+    console.error("Error creating group:", err);
+    setError(err instanceof Error ? err.message : "Group creation failed");
+  } finally {
+    setIsLoading(false);
+  }
 }
 
 export default function NewGroupScreen() {
+  const authFetch = useAuthFetch();
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [formData, setFormData] = useState<StudyGroupFormData>({
+  const [formData, setFormData] = useState<GroupData>({
     groupName: "",
     className: "",
     classCode: "",
@@ -136,7 +139,7 @@ export default function NewGroupScreen() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    const studyGroupData = {
+    const groupData: GroupData = {
       groupName: formData.groupName,
       className: formData.className,
       classCode: formData.classCode,
@@ -148,8 +151,10 @@ export default function NewGroupScreen() {
       location: formData.location,
       groupCreatorContact: formData.groupCreatorContact,
     };
-    console.log("Study Group Data:", studyGroupData);
-    attemptCreateGroup(studyGroupData, navigate, setError, setIsLoading);
+    console.log("Group Data:", groupData);
+    await attemptCreateGroup(
+      groupData, authFetch, navigate, setError, setIsLoading
+    );
   }
 
   const daysOfWeek = [

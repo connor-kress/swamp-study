@@ -5,18 +5,18 @@ import Button from "../components/Button";
 import FormInput from "../components/FormInput";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
-import TermDropdown from "../components/TermDropdown";
+import { useAuthFetch } from "../hooks/useAuthFetch";
 
-type classData = {
-  className: string;
-  classCode: string;
-  classDescription: string;
+type ClassData = {
+  name: string;
+  code: string;
+  description: string;
   professor: string;
-  term: string;
 };
 
 async function attemptAddClass(
-  classData: classData,
+  classData: ClassData,
+  authFetch: ReturnType<typeof useAuthFetch>,
   navigate: NavigateFunction,
   setError: React.Dispatch<React.SetStateAction<string>>,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
@@ -24,7 +24,7 @@ async function attemptAddClass(
   setError("");
   setIsLoading(true);
   try {
-    const response = await fetch("/api/course", {
+    const response = await authFetch("/api/course", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -54,13 +54,13 @@ async function attemptAddClass(
 }
 
 export default function NewClassScreen() {
+  const authFetch = useAuthFetch();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<classData>({
-    className: "",
-    classCode: "",
-    classDescription: "",
+  const [formData, setFormData] = useState<ClassData>({
+    name: "",
+    code: "",
+    description: "",
     professor: "",
-    term: "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +69,10 @@ export default function NewClassScreen() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement
                                           | HTMLSelectElement>
   ) {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    if (name == "code") {
+      value = value.replace(" ", "").toUpperCase();
+    }
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
@@ -80,15 +83,16 @@ export default function NewClassScreen() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    const newClassData = {
-      className: formData.className,
-      classCode: formData.classCode,
-      classDescription: formData.classDescription,
-      professor: formData.professor,
-      term: formData.term,
+    const classData: ClassData = {
+      name: formData.name.trim(),
+      code: formData.code.trim(),
+      description: formData.description.trim(),
+      professor: formData.professor.trim(),
     };
-    console.log(newClassData);
-    attemptAddClass(newClassData, navigate, setError, setIsLoading);
+    console.log(classData);
+    await attemptAddClass(
+      classData, authFetch, navigate, setError, setIsLoading
+    );
   }
 
   return (
@@ -116,56 +120,58 @@ export default function NewClassScreen() {
         <form className="w-full space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <label
-              htmlFor="className"
+              htmlFor="name"
               className="text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              Class Name
+              Course Title
             </label>
             <FormInput
               type="text"
-              id="className"
-              name="className"
-              placeholder="Enter the course name"
-              value={formData.className}
+              id="name"
+              name="name"
+              placeholder="Enter the course title"
+              value={formData.name}
               onChange={handleInputChange}
-              minLength={2}
-              required
-            />
-
-
-            <label
-              htmlFor="classCode"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Class Code
-            </label>
-            <FormInput
-              type="text"
-              id="classCode"
-              name="classCode"
-              placeholder="Enter the course code"
-              value={formData.classCode}
-              onChange={handleInputChange}
-              minLength={2}
+              minLength={5}
+              maxLength={100}
               required
             />
 
             <label
-              htmlFor="classDescription"
+              htmlFor="code"
               className="text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              Class Description
+              Course Code
+            </label>
+            <FormInput
+              type="text"
+              id="code"
+              name="code"
+              placeholder="e.g. COP3530"
+              value={formData.code}
+              onChange={handleInputChange}
+              minLength={7}
+              maxLength={10}
+              required
+            />
+
+            <label
+              htmlFor="description"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Course Description
             </label>
             <textarea
-              id="classDescription"
-              name="classDescription"
+              id="description"
+              name="description"
               placeholder="Enter the course description from one.uf.edu"
-              value={formData.classDescription}
+              value={formData.description}
               onChange={handleInputChange}
               rows={3}
               minLength={15}
               maxLength={200}
               className="w-full px-3 py-2 border rounded-md"
+              required
             />
 
             <label
@@ -176,26 +182,16 @@ export default function NewClassScreen() {
             </label>
             <FormInput
               type="text"
-              id="location"
-              name="location"
-              placeholder="Enter your professor's last name"
+              id="professor"
+              name="professor"
+              placeholder="e.g. Amanpreet Kapoor"
               value={formData.professor}
               onChange={handleInputChange}
-              minLength={2}
+              minLength={3}
+              maxLength={100}
+              required
             />
 
-            <label
-              htmlFor="term"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-                Term
-            </label>
-            <TermDropdown
-              id="term"
-              name="term"
-              value={formData.term}
-              onChange={handleInputChange}
-            />
           </div>
           <Button
             type="submit"
@@ -204,7 +200,7 @@ export default function NewClassScreen() {
             isLoading={isLoading}
             disabled={isLoading}
           >
-            Add to SwampStudy
+            Add Class
           </Button>
         </form>
       </div>
