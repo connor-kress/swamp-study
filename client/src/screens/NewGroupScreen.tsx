@@ -7,15 +7,16 @@ import Button from "../components/Button";
 import TermDropdown from "../components/TermDropdown";
 
 type StudyGroupFormData = {
+  groupName: string;
   className: string;
   classCode: string;
   professor: string;
   term: string;
   description: string;
-  meetingDate: string;
+  meetingDay: string;
   meetingTime: string;
   location: string;
-  maxMembers: string;
+  groupCreatorContact: string;
 }
 
 const mockClasses = [
@@ -49,15 +50,16 @@ export default function NewGroupScreen() {
   // Redirect to login screen when signed out
   const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState<StudyGroupFormData>({
+    groupName: "",
     className: "",
     classCode: "",
     professor: "",
     term: "",
     description: "",
-    meetingDate: "",
+    meetingDay: "",
     meetingTime: "",
     location: "",
-    maxMembers: "",
+    groupCreatorContact: "",
   });
 
   const selectedClass = searchQuery
@@ -92,18 +94,29 @@ export default function NewGroupScreen() {
     setIsLoading(true);
     setError("");
     const studyGroupData = {
+      groupName: formData.groupName,
       className: formData.className,
       classCode: formData.classCode,
       professor: formData.professor,
       term: formData.term,
       description: formData.description,
-      meetingDate: formData.meetingDate,
+      meetingDay: formData.meetingDay,
       meetingTime: formData.meetingTime,
       location: formData.location,
-      maxMembers: formData.maxMembers.toString(),
+      groupCreatorContact: formData.groupCreatorContact,
     };
     console.log("Study Group Data:", studyGroupData);
   }
+
+  const daysOfWeek = [
+    { value: "Monday", label: "Monday" },
+    { value: "Tuesday", label: "Tuesday" },
+    { value: "Wednesday", label: "Wednesday" },
+    { value: "Thursday", label: "Thursday" }, 
+    { value: "Friday", label: "Friday" },
+    { value: "Saturday", label: "Saturday" },
+    { value: "Sunday", label: "Sunday" },
+  ];
 
   return (
     <>
@@ -130,6 +143,19 @@ export default function NewGroupScreen() {
 
         <form className="w-full space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-4">
+            <label htmlFor="groupName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Group Name
+            </label>
+            <FormInput
+              type="text"
+              id="groupName"
+              name="groupName"
+              placeholder="Name your group"
+              value={formData.groupName}
+              onChange={handleInputChange}
+              minLength={2}
+              required
+            />
             <label htmlFor="classCode" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Class Code
             </label>
@@ -243,17 +269,31 @@ export default function NewGroupScreen() {
               className="w-full px-3 py-2 border rounded-md"
             />
 
-            <label htmlFor="meetingDate" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Meeting Date
+            <label htmlFor="meetingDay" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Meeting Day
             </label>
-            <FormInput
+            <select
+              id="meetingDay"
+              name="meetingDay"
+              value={formData.meetingDay}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded-md"
+            >
+              <option value="">Select a day</option>
+              {daysOfWeek.map(day => (
+                <option key={day.value} value={day.value}>
+                  {day.label}
+                </option>
+              ))}
+            </select>
+            {/* <FormInput
               type="date"
-              id="meetingDate"
-              name="meetingDate"
-              value={formData.meetingDate}
+              id="meetingDay"
+              name="meetingDay"
+              value={formData.meetingDay}
               onChange={handleInputChange}
               required
-            />
+            /> */}
 
             <label htmlFor="meetingTime" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Meeting Time
@@ -279,17 +319,17 @@ export default function NewGroupScreen() {
               minLength={5} 
             />
 
-            <label htmlFor="maxMembers" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Max Number of Members (4-6)
+            <label htmlFor="groupCreatorContact" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Contact Information
             </label>
             <FormInput
-              type="number"
-              id="maxMembers"
-              name="maxMembers"
-              value={formData.maxMembers}
+              type="text"
+              id="groupCreatorContact"
+              name="groupCreatorContact"
+              placeholder="How should we notify you?"
+              value={formData.groupCreatorContact}
               onChange={handleInputChange}
-              min={4}
-              max={6}
+              minLength={3} 
             />
           </div>
           <Button

@@ -44,7 +44,6 @@ export default function FormInput({
   passwordVisible = false,
   onPasswordToggle
 }: FormInputProps) {
-  console.log(`FormInput ${name} props:`, { type, step }); // Add this line
   const baseInputStyles = `
     w-full px-4 py-2.5 rounded-lg
     border border-gray-300 dark:border-gray-600

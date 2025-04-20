@@ -15,7 +15,6 @@ export default function TermDropdown({
     value,
     onChange,
 }: TermDropdownProps) {
-    console.log(`TermDropdown ${name} props:`, {name, id, value}); // Add this line
     const terms = [
         { value: '', label: 'Select a term' },
         { value: 'Spring 2025', label: 'Spring 2025' },
