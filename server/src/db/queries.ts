@@ -12,6 +12,21 @@ import {
   PendingVerificationSchema,
 } from "../types";
 
+export async function getAllUsers(
+  server: FastifyInstance,
+): Promise<User[]> {
+  const client = await server.pg.connect();
+  try {
+    const { rows } = await client.query(`
+      SELECT id, email, name, grad_year, role, created_at
+      FROM users
+    `);
+    return UserSchema.array().parse(rows);
+  } finally {
+    client.release();
+  }
+}
+
 export async function getUserById(
   server: FastifyInstance,
   id: number,
