@@ -1,13 +1,76 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, NavigateFunction, useNavigate } from "react-router";
+import {
+  ChatBubbleLeftIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ClockIcon,
+  ExclamationCircleIcon,
+  MapPinIcon,
+  UserGroupIcon,
+  UserPlusIcon,
+  XMarkIcon,
+} from "@heroicons/react/16/solid";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
 import { useFetchGroups } from "../hooks/useFetchGroups";
-import { Course, GroupWithMemberCount } from "../types";
+import {
+  Course,
+  GroupWithMemberCount,
+  User,
+  UserGroup,
+  UserGroupSchema,
+} from "../types";
 import { useFetchCourses } from "../hooks/useFetchCourses";
-import { ChatBubbleLeftIcon, ChevronDownIcon, ChevronUpIcon, ClockIcon, MapPinIcon, UserGroupIcon, UserPlusIcon } from "@heroicons/react/16/solid";
+import { useAuthFetch } from "../hooks/useAuthFetch";
+
+export async function attemptJoinGroup(
+  groupId: number,
+  userId: number,
+  authFetch: ReturnType<typeof useAuthFetch>,
+  navigate: NavigateFunction,
+  onError: (errorMsg: string) => void,
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+): Promise<void> {
+  setIsLoading(true);
+  try {
+    const response = await authFetch(`/api/group/${groupId}/user/${userId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ role: "member" }),
+    });
+
+    if (!response.ok) {
+      let err = (await response.json())?.error;
+      if (typeof err !== "string") {
+        console.error(err);
+        err = null;
+      }
+      throw new Error(err ?? "Unknown error");
+    }
+
+    const json = await response.json();
+    let userGroup: UserGroup;
+    try {
+      userGroup = UserGroupSchema.parse(json);
+    } catch (validationError) {
+      console.error("Invalid response format:", validationError);
+      throw new Error("Server returned invalid data format");
+    }
+
+    console.log("Successfully joined group:", userGroup);
+    navigate("/dashboard");
+  } catch (err) {
+    console.error("Error joining group:", err);
+    onError(err instanceof Error ? err.message : "Failed to join group");
+  } finally {
+    setIsLoading(false);
+  }
+}
 
 export default function GroupSearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -138,12 +201,61 @@ function formatDay(day: string) {
 };
 
 function GroupCard({ group }: { group: GroupWithMemberCount }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const authFetch = useAuthFetch();
+  const navigate = useNavigate();
+  // const { user } = useUserStore();
+  const user: User | null = null;
+
+  async function handleJoinGroup() {
+    if (!user) {
+      setError("You must be logged in to join a group");
+      return;
+    }
+
+    setError(null);
+    await attemptJoinGroup(
+      group.id,
+      user.id,
+      authFetch,
+      navigate,
+      setError,
+      setIsLoading
+    );
+  };
+
+  function handleCloseError() {
+    setError(null);
+  };
+
   return (
     <div
       className="p-6 border border-gray-200 dark:border-gray-700
                  rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800
-                 transition-colors shadow-sm"
+                 transition-colors shadow-sm relative"
     >
+      {/* Error Toast */}
+      {error && (
+        <div className="absolute top-0 left-0 right-0
+                        transform -translate-y-full p-2">
+          <div className="bg-red-100 border border-red-400 text-red-700
+                          px-4 py-3 rounded flex justify-between items-center">
+            <div className="flex items-center">
+              <ExclamationCircleIcon className="w-5 h-5 mr-2" />
+              <span>{error}</span>
+            </div>
+            <button
+              onClick={handleCloseError}
+              className="text-red-700 hover:text-red-900"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Meeting Information and Contact Details */}
       <div className="flex justify-between items-start">
         <div>
           <h3 className="text-lg font-semibold mb-2">{group.name}</h3>
@@ -175,19 +287,21 @@ function GroupCard({ group }: { group: GroupWithMemberCount }) {
         <Button
           variant="primary"
           className="flex items-center gap-2"
+          onClick={handleJoinGroup}
+          isLoading={isLoading}
+          disabled={isLoading}
         >
           <UserPlusIcon className="w-5 h-5" />
           Join Group
         </Button>
       </div>
 
-      {/* Optional: Add member count or other metadata */}
+      {/* Member count */}
       <div className="mt-4 pt-4 border-t border-gray-200
                       dark:border-gray-700">
         <div className="flex items-center text-sm
                         text-gray-500 dark:text-gray-400">
           <UserGroupIcon className="w-4 h-4 mr-1" />
-          {/* TODO */}
           {group.member_count === 0 && (
             <span>No members</span>
           ) || (
