@@ -13,9 +13,7 @@ export const TimeSchema = z.preprocess((val) => {
     const match = val.match(timeOnly);
     if (match) {
       const [, h, m, s = "00"] = match;
-      const date = new Date(
-        Date.UTC(1970, 0, 1, Number(h), Number(m), Number(s))
-      );
+      const date = new Date(1970, 0, 1, Number(h), Number(m), Number(s));
       return isNaN(date.getTime()) ? undefined : date;
     }
     // Try to parse as ISO string
