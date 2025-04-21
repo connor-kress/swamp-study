@@ -126,19 +126,15 @@ export default function NewGroupScreen() {
       setError("Course term not found.");
       return;
     }
-    if (formData.meetingDay === "") {
-      setError("Please select a meeting day.");
-      return;
-    }
     console.log("Form data:", formData);
     const groupData = NewGroupInputSchema.parse({
       name: formData.name.trim(),
       course_id: course.id,
       year: termData.year,
       term: termData.term,
-      meeting_day: formData.meetingDay.trim(),
-      meeting_time: formData.meetingTime.trim(),
-      meeting_location: formData.location.trim(),
+      meeting_day: formData.meetingDay || null,
+      meeting_time: formData.meetingTime || null,
+      meeting_location: formData.location.trim() || null,
       contact_details: formData.contactDetails.trim(),
     });
     console.log("Parsed group data:", groupData);
@@ -357,6 +353,7 @@ export default function NewGroupScreen() {
               name="meetingTime"
               value={formData.meetingTime}
               onChange={handleInputChange}
+              required={false}
             />
 
             <label
@@ -373,6 +370,7 @@ export default function NewGroupScreen() {
               value={formData.location}
               onChange={handleInputChange}
               minLength={2}
+              required={false}
             />
 
             <label
