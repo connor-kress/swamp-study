@@ -19,12 +19,12 @@ import { useFetchGroups } from "../hooks/useFetchGroups";
 import {
   Course,
   GroupWithMemberCount,
-  User,
   UserGroup,
   UserGroupSchema,
 } from "../types";
 import { useFetchCourses } from "../hooks/useFetchCourses";
 import { useAuthFetch } from "../hooks/useAuthFetch";
+import { useAuth } from "../hooks/useAuth";
 import { useUserStore } from "../stores/userStore";
 
 export async function attemptJoinGroup(
@@ -74,6 +74,7 @@ export async function attemptJoinGroup(
 }
 
 export default function GroupSearchScreen() {
+  useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const { courses } = useFetchCourses();
   const { groups } = useFetchGroups();

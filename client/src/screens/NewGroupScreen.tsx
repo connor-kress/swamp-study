@@ -9,6 +9,7 @@ import TermDropdown, { courseTermData } from "../components/TermDropdown";
 import { useAuthFetch } from "../hooks/useAuthFetch";
 import { Course, NewGroupInput, NewGroupInputSchema, Weekday } from "../types";
 import { useFetchCourses } from "../hooks/useFetchCourses";
+import { useAuth } from "../hooks/useAuth";
 
 const daysOfWeek: {
   value: Weekday;
@@ -74,6 +75,7 @@ export async function attemptCreateGroup(
 }
 
 export default function NewGroupScreen() {
+  useAuth();
   const authFetch = useAuthFetch();
   const navigate = useNavigate();
   const { courses } = useFetchCourses();

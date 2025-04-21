@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuthFetch } from "../hooks/useAuthFetch";
+import { useUserStore } from "../stores/userStore";
 
 export default function LogoutButton() {
   const authFetch = useAuthFetch();
   const navigate = useNavigate();
+  const { user, setUser } = useUserStore(state => state);
   const [logoutAll, setLogoutAll] = useState(false);
 
   async function handleLogout() {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
     const endpoint = logoutAll ? "/api/auth/logout-all"
                                : "/api/auth/logout";
     try {
@@ -20,7 +26,7 @@ export default function LogoutButton() {
 
       const data = await response.json();
       console.log("Logout successful:", data.message);
-      // TODO: Update user state
+      setUser(null);
       navigate("/login");
     } catch (error) {
       console.error("Error during logout:", error);

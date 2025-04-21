@@ -8,7 +8,6 @@ export function useAuthFetch() {
     async function (
       input: RequestInfo,
       init?: RequestInit,
-      redirectOnFail: boolean = true
     ): Promise<Response> {
       let response = await fetch(input, {
         ...init,
@@ -23,9 +22,6 @@ export function useAuthFetch() {
         });
 
         if (!refreshResponse.ok) {
-          if (redirectOnFail && location.pathname !== "/login") {
-            navigate("/login");
-          }
           const data = await refreshResponse.json();
           throw new Error(
             `Unable to refresh token: ${data?.error || "Unknown error"}`

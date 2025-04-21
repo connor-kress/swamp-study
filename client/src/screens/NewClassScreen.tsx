@@ -6,6 +6,7 @@ import FormInput from "../components/FormInput";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
 import { useAuthFetch } from "../hooks/useAuthFetch";
+import { useAuth } from "../hooks/useAuth";
 
 type ClassData = {
   name: string;
@@ -54,6 +55,7 @@ async function attemptAddClass(
 }
 
 export default function NewClassScreen() {
+  useAuth();
   const authFetch = useAuthFetch();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<ClassData>({

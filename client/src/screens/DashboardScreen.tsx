@@ -1,18 +1,11 @@
-import { useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import Button from "../components/Button";
 import LogoutButton from "../components/LogoutButton";
 import SwampStudy from "../components/SwampStudy";
-import { useUserStore } from "../stores/userStore";
+import { useAuth } from "../hooks/useAuth";
 
 export default function DashboardScreen() {
-  const navigate = useNavigate();
-  const user = useUserStore(state => state.user);
-  useEffect(() => {
-    if (!user) {
-      navigate("/login");
-    }
-  }, [user, navigate]);
+  const { user } = useAuth()
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -31,7 +24,8 @@ export default function DashboardScreen() {
       </div>
 
       <div className="py-5">
-        <span className="font-bold">User:</span> {user ? user.name : "Not found"}
+        <span className="font-bold">User:</span>{" "}
+        {user ? user.name : "Loading..."}
       </div>
 
       {/* My Groups Section */}
