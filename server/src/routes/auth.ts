@@ -16,6 +16,7 @@ import {
   getSessionByAccessToken,
   getSessionByRefreshToken,
   getUserByEmail,
+  getUserById,
   HashedUserInput,
   updateSessionTokens,
   upsertPendingVerification,
@@ -128,7 +129,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
     session.session = newSession;
     setTokenCookies(reply, tokenData);
     console.log("Refresh successful");
-    return { status: "success", data: session };
+    return { status: "success", user: session.user };
   });
 
   // GET /auth/verify - Verifies access token.
@@ -181,7 +182,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       setTokenCookies(reply, tokenData);
 
       console.log(`Login successful: ${email}`);
-      return { message: "Login successful" };
+      return { message: "Login successful", user };
     } catch (error) {
       reply.code(500);
       console.log(error);

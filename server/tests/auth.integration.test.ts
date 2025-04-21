@@ -189,7 +189,7 @@ describe("Authentication Integration", () => {
     expect(refreshResponse.statusCode).toBe(200);
     const refreshBody = JSON.parse(refreshResponse.payload);
     expect(refreshBody.status).toBe("success");
-    expect(refreshBody.data).toBeDefined();
+    expect(refreshBody.user).toBeDefined();
 
     let newCookies = refreshResponse.headers["set-cookie"];
     expect(newCookies).toBeDefined();
