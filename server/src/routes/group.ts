@@ -6,6 +6,7 @@ import {
   createGroupWithOwner,
   deleteGroup,
   getAllGroups,
+  getAllGroupsWithMemberCounts,
   getGroupById,
   getUserGroupRole,
   getUsersInGroup,
@@ -45,7 +46,7 @@ function getGroupAndUserIdParams(
 }
 
 const groupRoutes: FastifyPluginAsync = async (server) => {
-  // GET /group/ - Get all groups.
+  // GET /group/ - Get all groups with member counts.
   server.get("/", async (request, reply) => {
     const session = await verifyAccessToken(request, reply);
     if (!session) {
@@ -54,7 +55,7 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
     }
 
     try {
-      const groups = await getAllGroups(server);
+      const groups = await getAllGroupsWithMemberCounts(server);
       return groups;
     } catch (error) {
       reply.code(500);

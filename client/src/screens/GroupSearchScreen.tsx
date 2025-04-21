@@ -5,7 +5,7 @@ import FormInput from "../components/FormInput";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
 import { useFetchGroups } from "../hooks/useFetchGroups";
-import { Course, Group } from "../types";
+import { Course, GroupWithMemberCount } from "../types";
 import { useFetchCourses } from "../hooks/useFetchCourses";
 import { ChatBubbleLeftIcon, ChevronDownIcon, ChevronUpIcon, ClockIcon, MapPinIcon, UserGroupIcon, UserPlusIcon } from "@heroicons/react/16/solid";
 
@@ -81,7 +81,10 @@ export default function GroupSearchScreen() {
   );
 }
 
-function CourseTab({ course, groups }: { course: Course; groups: Group[] }) {
+function CourseTab({ course, groups }: {
+  course: Course;
+  groups: GroupWithMemberCount[];
+}) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -134,8 +137,7 @@ function formatDay(day: string) {
   return day.charAt(0).toUpperCase() + day.slice(1);
 };
 
-function GroupCard({ group }: { group: Group }) {
-
+function GroupCard({ group }: { group: GroupWithMemberCount }) {
   return (
     <div
       className="p-6 border border-gray-200 dark:border-gray-700
@@ -186,7 +188,13 @@ function GroupCard({ group }: { group: Group }) {
                         text-gray-500 dark:text-gray-400">
           <UserGroupIcon className="w-4 h-4 mr-1" />
           {/* TODO */}
-          <span>4 members</span>
+          {group.member_count === 0 && (
+            <span>No members</span>
+          ) || (
+            <span>
+              {group.member_count} member{group.member_count === 1 ? "" : "s"}
+            </span>
+          )}
         </div>
       </div>
     </div>

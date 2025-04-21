@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Group, GroupSchema } from "../types";
+import { GroupWithMemberCount, GroupWithMemberCountSchema } from "../types";
 import { useAuthFetch } from "./useAuthFetch";
 
 export async function fetchGroups(
   authFetch: ReturnType<typeof useAuthFetch>,
-): Promise<Group[] | null> {
+): Promise<GroupWithMemberCount[] | null> {
   try {
     const response = await authFetch("/api/group", {
       method: "GET",
@@ -20,7 +20,7 @@ export async function fetchGroups(
     }
 
     const data = await response.json();
-    return GroupSchema.array().parse(data);
+    return GroupWithMemberCountSchema.array().parse(data);
   } catch (err) {
     console.error("Error fetching groups:", err);
     return null;
@@ -28,7 +28,7 @@ export async function fetchGroups(
 }
 
 interface UseFetchGroupsResult {
-  groups: Group[] | null;
+  groups: GroupWithMemberCount[] | null;
   loading: boolean;
   error: string | null;
 }
@@ -36,7 +36,7 @@ interface UseFetchGroupsResult {
 export function useFetchGroups(): UseFetchGroupsResult {
   const authFetch = useAuthFetch();
 
-  const [groups, setGroups] = useState<Group[] | null>(null);
+  const [groups, setGroups] = useState<GroupWithMemberCount[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
