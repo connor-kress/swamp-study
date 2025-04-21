@@ -164,7 +164,7 @@ export default function NewClassScreen() {
             <textarea
               id="description"
               name="description"
-              placeholder="Enter the course description from one.uf.edu"
+              placeholder="Enter the description from the UF course catalogue"
               value={formData.description}
               onChange={handleInputChange}
               rows={3}

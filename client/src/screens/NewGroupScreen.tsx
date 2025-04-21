@@ -225,8 +225,8 @@ export default function NewGroupScreen() {
                     className={`p-4 border rounded-lg shadow-sm cursor-pointer
                                 transition-all duration-200 ${
                         cls.code === formData.classCode
-                          ? "bg-blue-50 border-blue-500 \
-                             dark:bg-blue-900/20 dark:border-blue-400"
+                          ? `bg-blue-50 border-blue-500
+                             dark:bg-blue-900/20 dark:border-blue-400`
                           : "hover:bg-gray-100 dark:hover:bg-gray-800"
                       }`}
                     onClick={() => {
