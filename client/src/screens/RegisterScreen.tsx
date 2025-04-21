@@ -65,8 +65,8 @@ export default function RegisterScreen() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: formData.email,
-          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email.trim().toLowerCase(),
+          name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
         }),
       });
 
@@ -105,10 +105,10 @@ export default function RegisterScreen() {
     setVerificationError("");
     setIsVerificationLoading(true);
     const payload = {
-      name: `${formData.firstName} ${formData.lastName}`,
+      name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
       grad_year: Number(formData.gradYear),
-      email: formData.email,
-      password: formData.password,
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password.trim(),
       code: verificationCode,
     };
 
@@ -131,8 +131,8 @@ export default function RegisterScreen() {
 
       // Attempt login after successful registration
       const credentials = {
-        email: formData.email,
-        password: formData.password,
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password.trim(),
       };
       attemptLogin(credentials, navigate, setError, setIsLoading);
     } catch (err) {

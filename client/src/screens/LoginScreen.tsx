@@ -67,8 +67,8 @@ export default function LoginScreen() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const credentials = {
-      email: formData.email,
-      password: formData.password,
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password.trim(),
     };
     console.log("Login credentials:", credentials);
     attemptLogin(credentials, navigate, setError, setIsLoading);
