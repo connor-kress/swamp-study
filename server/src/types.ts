@@ -111,12 +111,18 @@ export const UserGroupSchema = z.object({
   created_at: DateSchema,
 });
 
+export const UserWithGroupRoleSchema = z.object({
+  user: UserSchema,
+  role: UserGroupRoleEnum,
+});
+
 export type User = z.infer<typeof UserSchema>;
 export type UserSession = z.infer<typeof UserSessionSchema>;
 export type Course = z.infer<typeof CourseSchema>;
 export type Group = z.infer<typeof GroupSchema>;
 export type GroupWithMemberCount = z.infer<typeof GroupWithMemberCountSchema>;
 export type UserGroup = z.infer<typeof UserGroupSchema>;
+export type UserWithGroupRole = z.infer<typeof UserWithGroupRoleSchema>;
 
 export type NewUserInput = z.infer<typeof NewUserInputSchema>;
 export type NewCourseInput = z.infer<typeof NewCourseInputSchema>;

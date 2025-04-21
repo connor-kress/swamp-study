@@ -5,12 +5,11 @@ import {
   GroupWithMemberCount,
   GroupWithMemberCountSchema,
   NewGroupInput,
-  User,
   UserGroup,
   UserGroupRole,
-  UserGroupRoleEnum,
   UserGroupSchema,
-  UserSchema,
+  UserWithGroupRole,
+  UserWithGroupRoleSchema,
 } from "../types";
 
 export async function getAllGroups(
@@ -242,11 +241,6 @@ export async function getUserGroupRole(
   }
 }
 
-export type UserWithGroupRole = {
-  user: User,
-  role: UserGroupRole,
-};
-
 export async function getUsersInGroup(
   server: FastifyInstance,
   group_id: number,
@@ -263,16 +257,16 @@ export async function getUsersInGroup(
       ORDER BY ug.group_role DESC, u.name DESC`,
       [group_id]
     );
-    return rows.map(row => ({
-      user: UserSchema.parse({
+    return rows.map(row => UserWithGroupRoleSchema.parse({
+      user: {
         id: row.id,
         email: row.email,
         name: row.name,
         grad_year: row.grad_year,
         role: row.role,
         created_at: row.created_at,
-      }),
-      role: UserGroupRoleEnum.parse(row.group_role),
+      },
+      role: row.group_role,
     }));
   } finally {
     client.release();
