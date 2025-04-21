@@ -169,7 +169,6 @@ export default function NewClassScreen() {
               onChange={handleInputChange}
               rows={3}
               minLength={15}
-              maxLength={200}
               className="w-full px-3 py-2 border rounded-md"
               required
             />
