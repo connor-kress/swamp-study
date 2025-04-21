@@ -9,8 +9,17 @@ export const DateSchema = z.preprocess((arg) => {
 export const TimeSchema = z.preprocess((val) => {
   if (typeof val === "string") {
     // "HH:MM" or "HH:MM:SS"
-    const [h, m, s = "00"] = val.split(":");
-    const date = new Date(Date.UTC(1970, 0, 1, Number(h), Number(m), Number(s)));
+    const timeOnly = /^(\d{2}):(\d{2})(?::(\d{2}))?$/;
+    const match = val.match(timeOnly);
+    if (match) {
+      const [, h, m, s = "00"] = match;
+      const date = new Date(
+        Date.UTC(1970, 0, 1, Number(h), Number(m), Number(s))
+      );
+      return isNaN(date.getTime()) ? undefined : date;
+    }
+    // Try to parse as ISO string
+    const date = new Date(val);
     return isNaN(date.getTime()) ? undefined : date;
   }
   if (val instanceof Date) {
