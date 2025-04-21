@@ -16,7 +16,6 @@ import {
   getSessionByAccessToken,
   getSessionByRefreshToken,
   getUserByEmail,
-  getUserById,
   HashedUserInput,
   updateSessionTokens,
   upsertPendingVerification,
