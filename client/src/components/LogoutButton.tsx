@@ -28,21 +28,7 @@ export default function LogoutButton() {
   }
 
   return (
-    <div className="flex flex-col items-end gap-3">
-      <label className="flex items-center gap-2 text-sm text-gray-600
-                       dark:text-gray-400 cursor-pointer">
-        <input
-          type="checkbox"
-          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600
-                     text-blue-600 focus:ring-blue-500
-                     dark:focus:ring-blue-400 dark:bg-gray-700
-                     cursor-pointer"
-          checked={logoutAll}
-          onChange={() => setLogoutAll(prev => !prev)}
-        />
-        Log out of all sessions
-      </label>
-
+    <div className="flex flex-col items-center gap-3">
       <button
         onClick={handleLogout}
         type="button"
@@ -58,6 +44,20 @@ export default function LogoutButton() {
       >
         Logout
       </button>
+
+      <label className="flex items-center gap-2 text-sm text-gray-600
+                       dark:text-gray-400 cursor-pointer">
+        <input
+          type="checkbox"
+          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600
+                     text-blue-600 focus:ring-blue-500
+                     dark:focus:ring-blue-400 dark:bg-gray-700
+                     cursor-pointer"
+          checked={logoutAll}
+          onChange={() => setLogoutAll(prev => !prev)}
+        />
+        all sessions
+      </label>
     </div>
   );
 }
