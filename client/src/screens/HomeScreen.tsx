@@ -1,7 +1,10 @@
 import Button from "../components/Button";
 import SwampStudy from "../components/SwampStudy";
+import { useOptionalUser } from "../hooks/useOptionalUser";
 
 export default function HomeScreen() {
+  const { user } = useOptionalUser();
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="max-w-2xl mx-auto text-center space-y-8">
@@ -16,9 +19,13 @@ export default function HomeScreen() {
           </p>
         </div>
 
-        {/* Login and Signup Buttons */}
+        {/* Navigation Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button to="/login" variant="primary">Login</Button>
+          {user && (
+            <Button to="/dashboard" variant="primary">Dashboard</Button>
+          ) || (
+            <Button to="/login" variant="primary">Login</Button>
+          )}
           <Button to="/register" variant="secondary">Sign Up</Button>
         </div>
 
