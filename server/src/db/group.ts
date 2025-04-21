@@ -1,8 +1,10 @@
 import { FastifyInstance } from "fastify";
 import {
   Group,
-  NewGroupInput,
   GroupSchema,
+  GroupWithMemberCount,
+  GroupWithMemberCountSchema,
+  NewGroupInput,
   User,
   UserGroup,
   UserGroupRole,
@@ -23,6 +25,49 @@ export async function getAllGroups(
       ORDER BY year DESC, term DESC, course_id DESC, id DESC
     `);
     return GroupSchema.array().parse(rows);
+  } finally {
+    client.release();
+  }
+}
+
+export async function getAllGroupsWithMemberCounts(
+  server: FastifyInstance,
+): Promise<GroupWithMemberCount[]> {
+  const client = await server.pg.connect();
+  try {
+    const { rows } = await client.query(`
+      SELECT
+        g.id,
+        g.name,
+        g.course_id,
+        g.year,
+        g.term,
+        g.contact_details,
+        g.meeting_day,
+        g.meeting_time,
+        g.meeting_location,
+        g.created_at,
+        COUNT(ug.user_id) AS member_count
+      FROM groups g
+      LEFT JOIN user_groups ug ON ug.group_id = g.id
+      GROUP BY
+        g.id,
+        g.name,
+        g.course_id,
+        g.year,
+        g.term,
+        g.contact_details,
+        g.meeting_day,
+        g.meeting_time,
+        g.meeting_location,
+        g.created_at
+    `);
+    // member_count comes as string? so we convert it
+    const parsedRows = rows.map(row => ({
+      ...row,
+      member_count: Number(row.member_count),
+    }));
+    return GroupWithMemberCountSchema.array().parse(parsedRows);
   } finally {
     client.release();
   }

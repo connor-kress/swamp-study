@@ -97,6 +97,10 @@ export const GroupSchema = z.object({
   created_at: DateSchema,
 });
 
+export const GroupWithMemberCountSchema = GroupSchema.and(z.object({
+  member_count: z.number().int().nonnegative(),
+}));
+
 export const NewGroupInputSchema = GroupSchema.omit({
   id: true,
   created_at: true,
@@ -113,6 +117,7 @@ export type User = z.infer<typeof UserSchema>;
 export type UserSession = z.infer<typeof UserSessionSchema>;
 export type Course = z.infer<typeof CourseSchema>;
 export type Group = z.infer<typeof GroupSchema>;
+export type GroupWithMemberCount = z.infer<typeof GroupWithMemberCountSchema>;
 export type UserGroup = z.infer<typeof UserGroupSchema>;
 
 export type NewUserInput = z.infer<typeof NewUserInputSchema>;
