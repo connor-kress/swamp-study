@@ -5,7 +5,6 @@ import {
   addUserToGroup,
   createGroupWithOwner,
   deleteGroup,
-  getAllGroups,
   getAllGroupsWithMemberCounts,
   getGroupById,
   getUserGroupRole,
@@ -222,6 +221,14 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
     }
 
     try {
+      const currentRole = await getUserGroupRole(
+        server, user_id, group_id
+      );
+      if (currentRole && currentRole.group_role === role) {
+        reply.code(409);
+        console.log(`User ${user_id} already in group ${group_id}`);
+        return { error: "User already in group." };
+      }
       const userGroup = await addUserToGroup(server, user_id, group_id, role);
       reply.code(201);
       return userGroup;
