@@ -4,48 +4,27 @@ import Button from "../components/Button";
 import FormInput from "../components/FormInput";
 import NavBar from "../components/NavBar";
 import SwampStudy from "../components/SwampStudy";
-
-// Mock data for demonstration - in proudction use real data from the databse
-// also include token verification for when user is not logged in
-
-const mockGroups = [
-  { 
-    id: 1, 
-    className: "Introduction to Computer Science", 
-    classCode: "COP3502", 
-    professor: "Dr. Amanpreet Kapoor (GOAT)",
-    location: "Marston Science Library, Room 203",
-    startTime: "2:00 PM",
-    endTime: "4:00 PM"
-  },
-  { 
-    id: 2, 
-    className: "Data Structures and Algorithms", 
-    classCode: "COP3530", 
-    professor: "Dr. Amanpreet Kapoor (GOAT)",
-    location: "Newell Hall, Room 101",
-    startTime: "3:30 PM",
-    endTime: "5:30 PM"
-  },
-  { 
-    id: 3, 
-    className: "Computer Organization", 
-    classCode: "CDA3101", 
-    professor: "Dr. Cheryl Resch (ANOTHER GOAT)",
-    location: "Library West, Room 302",
-    startTime: "1:00 PM",
-    endTime: "3:00 PM"
-  },
-];
+import { useFetchGroups } from "../hooks/useFetchGroups";
+import { Course, Group } from "../types";
+import { useFetchCourses } from "../hooks/useFetchCourses";
 
 export default function GroupSearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { courses } = useFetchCourses();
+  const { groups } = useFetchGroups();
 
   // Filter groups based on search query
-  const filteredGroups = mockGroups.filter(group => 
-    group.className.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    group.classCode.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  let filteredGroups: Group[] = [];
+  if (groups && courses) {
+    filteredGroups = groups.filter(group => {
+      const course = courses.find(course => course.id === group.course_id);
+      if (!course) return false;
+      return (
+        course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.code.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+  }
 
   return (
     <>
@@ -66,47 +45,78 @@ export default function GroupSearchScreen() {
           />
         </div>
 
-        {filteredGroups.length > 0 ? (
-          <div className="space-y-4">
-            {filteredGroups.map(group => (
-              <div 
-                key={group.id}
-                className="p-4 border border-gray-200 dark:border-gray-700
-                           rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800
-                           transition-colors"
-              >
-                <h3 className="text-xl font-semibold">{group.className}</h3>
-                <div className="mt-2 space-y-1">
-                  <p className="text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Code:</span> {group.classCode}
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Professor:</span> {group.professor}
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Location:</span> {group.location}
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Time:</span> {group.startTime} - {group.endTime}
-                  </p>
-                </div>
-                <div className="mt-4">
-                  <Button variant="primary">
-                    Join Group
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-gray-600 dark:text-gray-400">
-            <p>No groups found matching your search.</p>
-            <p className="mt-4">
-              Can't find a group? <Link to="/new-group" className="text-blue-600 dark:text-blue-400 hover:underline">Create a new one</Link>.
-            </p>
-          </div>
+        {groups && courses && (
+          filteredGroups.length > 0 ? (
+            <div className="space-y-4">
+              {filteredGroups.map(group => (
+                <GroupCard group={group} courses={courses}/>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-600 dark:text-gray-400">
+              <p>No groups found matching your search.</p>
+              <p className="mt-4">
+                Can't find a group?{" "}
+                <Link
+                  to="/new-group"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Create a new one
+                </Link>.
+              </p>
+            </div>
+          )
+        ) || (
+          <div>Loading...</div>
         )}
       </div>
     </>
+  );
+}
+
+function GroupCard({ group, courses }: { group: Group, courses: Course[] }) {
+  const course = courses.find(course => course.id === group.course_id);
+  if (!course) {
+    throw new Error("Group should always have associated course");
+  }
+
+  return (
+    <div
+      key={group.id}
+      className="p-4 border border-gray-200 dark:border-gray-700
+                 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800
+                 transition-colors"
+    >
+      <h3 className="text-xl font-semibold">
+        {course.name}
+      </h3>
+      <div className="mt-2 space-y-1">
+        <p className="text-gray-600 dark:text-gray-400">
+          <span className="font-medium">Code:</span>{" "}
+          {course.code}
+        </p>
+        <p className="text-gray-600 dark:text-gray-400">
+          <span className="font-medium">Professor:</span>{" "}
+          {course.professor}
+        </p>
+        {group.meeting_location && (
+          <p className="text-gray-600 dark:text-gray-400">
+            <span className="font-medium">Location:</span>{" "}
+            {group.meeting_location}
+          </p>
+        )}
+        {group.meeting_day && group.meeting_time && (
+          <p className="text-gray-600 dark:text-gray-400">
+            <span className="font-medium">Time:</span>{" "}
+            {group.meeting_time.getHours()}:{group.meeting_time.getMinutes()}
+          </p>
+        )}
+      </div>
+      <div className="mt-4">
+        <Button variant="primary">
+          Join Group
+        </Button>
+      </div>
+    </div>
   );
 }

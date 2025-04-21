@@ -76,6 +76,7 @@ export async function attemptCreateGroup(
 export default function NewGroupScreen() {
   const authFetch = useAuthFetch();
   const navigate = useNavigate();
+  const { courses } = useFetchCourses();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<GroupFormData>({
@@ -89,15 +90,12 @@ export default function NewGroupScreen() {
     contactDetails: "",
   });
 
-  const { courses } = useFetchCourses();
-
   let matches: Course[] = [];
   if (formData.classCode && courses) {
     matches = courses.filter(course =>
       course.code.toLowerCase().startsWith(formData.classCode.toLowerCase())
     );
   }
-
 
   function handleInputChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement
