@@ -6,6 +6,7 @@ import Button from "../components/Button";
 import FormInput from "../components/FormInput";
 import SwampStudy from "../components/SwampStudy";
 import Modal from "../components/Modal";
+import { useUserStore } from "../stores/userStore";
 
 
 function formatTimeRemaining(seconds: number): string {
@@ -17,6 +18,7 @@ function formatTimeRemaining(seconds: number): string {
 
 export default function RegisterScreen() {
   const navigate = useNavigate();
+  const setUser = useUserStore(state => state.setUser);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -134,7 +136,7 @@ export default function RegisterScreen() {
         email: formData.email.trim().toLowerCase(),
         password: formData.password.trim(),
       };
-      attemptLogin(credentials, navigate, setError, setIsLoading);
+      attemptLogin(credentials, navigate, setError, setIsLoading, setUser);
     } catch (err) {
       console.warn("Error registering user:", err);
       setVerificationError(

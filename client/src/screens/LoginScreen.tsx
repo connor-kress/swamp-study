@@ -4,6 +4,8 @@ import { Link, NavigateFunction, useNavigate } from "react-router";
 import { useAuthFetch } from "../hooks/useAuthFetch";
 import Button from "../components/Button";
 import FormInput from "../components/FormInput";
+import { useUserStore } from "../stores/userStore";
+import { User, UserSchema } from "../types";
 
 type LoginCredentials = {
   email: string;
@@ -15,6 +17,7 @@ export async function attemptLogin(
   navigate: NavigateFunction,
   setError: React.Dispatch<React.SetStateAction<string>>,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setUser: (user: User | null) => void,
 ) {
     setError("");
     setIsLoading(true);
@@ -38,7 +41,9 @@ export async function attemptLogin(
 
       const data = await response.json();
       if (data.error) throw new Error(data.error);
-      console.log("Login successful:", data);
+      const user = UserSchema.parse(data.user);
+      setUser(user);
+      console.log("Login successful:", user);
       navigate("/dashboard");
     } catch (err) {
       console.error("Error logging in:", err);
@@ -58,6 +63,7 @@ export default function LoginScreen() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const setUser = useUserStore(state => state.setUser);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -71,7 +77,7 @@ export default function LoginScreen() {
       password: formData.password.trim(),
     };
     console.log("Login credentials:", credentials);
-    attemptLogin(credentials, navigate, setError, setIsLoading);
+    attemptLogin(credentials, navigate, setError, setIsLoading, setUser);
   }
 
   async function verifySession() {
@@ -80,11 +86,14 @@ export default function LoginScreen() {
 
       if (!response.ok) {
         console.log("No valid session found.");
+        setUser(null)
         return;
       }
 
       const data = await response.json();
-      console.log("Session verified:", data.user);
+      const user = UserSchema.parse(data.user);
+      setUser(user);
+      console.log("Session verified:", user);
       navigate("/dashboard");
     } catch (err) {
       console.error("Error verifying session:", err);

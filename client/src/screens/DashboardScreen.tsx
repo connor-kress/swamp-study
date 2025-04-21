@@ -1,10 +1,19 @@
-import { Link } from "react-router";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router";
 import Button from "../components/Button";
 import LogoutButton from "../components/LogoutButton";
 import SwampStudy from "../components/SwampStudy";
+import { useUserStore } from "../stores/userStore";
 
 export default function DashboardScreen() {
-  // Redirect to login screen when signed out
+  const navigate = useNavigate();
+  const user = useUserStore(state => state.user);
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Header Section */}
@@ -19,6 +28,10 @@ export default function DashboardScreen() {
       <div className="flex gap-4 mb-12">
         <Button to="/new-group" variant="primary">Create a Group</Button>
         <Button to="/find-group" variant="secondary">Join a Group</Button>
+      </div>
+
+      <div className="py-5">
+        <span className="font-bold">User:</span> {user ? user.name : "Not found"}
       </div>
 
       {/* My Groups Section */}

@@ -25,6 +25,7 @@ import {
 } from "../types";
 import { useFetchCourses } from "../hooks/useFetchCourses";
 import { useAuthFetch } from "../hooks/useAuthFetch";
+import { useUserStore } from "../stores/userStore";
 
 export async function attemptJoinGroup(
   groupId: number,
@@ -205,8 +206,7 @@ function GroupCard({ group }: { group: GroupWithMemberCount }) {
   const [error, setError] = useState<string | null>(null);
   const authFetch = useAuthFetch();
   const navigate = useNavigate();
-  // const { user } = useUserStore();
-  const user: User | null = null;
+  const user = useUserStore(state => state.user);
 
   async function handleJoinGroup() {
     if (!user) {
