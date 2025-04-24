@@ -4,6 +4,8 @@ import {
   GroupSchema,
   GroupWithMemberCount,
   GroupWithMemberCountSchema,
+  GroupWithMembers,
+  GroupWithMembersSchema,
   NewGroupInput,
   UserGroup,
   UserGroupRole,
@@ -67,6 +69,69 @@ export async function getAllGroupsWithMemberCounts(
       member_count: Number(row.member_count),
     }));
     return GroupWithMemberCountSchema.array().parse(parsedRows);
+  } finally {
+    client.release();
+  }
+}
+
+export async function getGroupsWithMembersForUser(
+  server: FastifyInstance,
+  userId: number,
+): Promise<GroupWithMembers[]> {
+  const client = await server.pg.connect();
+  try {
+    const { rows } = await client.query(`
+      SELECT
+        g.id,
+        g.name,
+        g.course_id,
+        g.year,
+        g.term,
+        g.contact_details,
+        g.meeting_day,
+        g.meeting_time,
+        g.meeting_location,
+        g.created_at,
+        json_agg(
+          json_build_object(
+            'id', u.id,
+            'email', u.email,
+            'name', u.name,
+            'grad_year', u.grad_year,
+            'role', u.role,
+            'created_at', u.created_at,
+            'group_role', ug2.group_role
+          )
+          ORDER BY u.id
+        ) AS members
+      FROM groups g
+      JOIN user_groups ug1 ON ug1.group_id = g.id
+      JOIN user_groups ug2 ON ug2.group_id = g.id
+      JOIN users u ON u.id = ug2.user_id
+      WHERE ug1.user_id = $1
+      GROUP BY
+        g.id,
+        g.name,
+        g.course_id,
+        g.year,
+        g.term,
+        g.contact_details,
+        g.meeting_day,
+        g.meeting_time,
+        g.meeting_location,
+        g.created_at
+      ORDER BY g.created_at DESC
+    `, [userId]);
+
+    // Parse members JSON string
+    const parsedRows = rows.map(row => ({
+      ...row,
+      members: Array.isArray(row.members)
+        ? row.members
+        : JSON.parse(row.members),
+    }));
+
+    return GroupWithMembersSchema.array().parse(parsedRows);
   } finally {
     client.release();
   }
@@ -258,15 +323,13 @@ export async function getUsersInGroup(
       [group_id]
     );
     return rows.map(row => UserWithGroupRoleSchema.parse({
-      user: {
-        id: row.id,
-        email: row.email,
-        name: row.name,
-        grad_year: row.grad_year,
-        role: row.role,
-        created_at: row.created_at,
-      },
-      role: row.group_role,
+      id: row.id,
+      email: row.email,
+      name: row.name,
+      grad_year: row.grad_year,
+      role: row.role,
+      created_at: row.created_at,
+      group_role: row.group_role,
     }));
   } finally {
     client.release();

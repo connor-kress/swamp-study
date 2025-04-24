@@ -178,7 +178,7 @@ describe("Group Integration Flow", () => {
     const users = JSON.parse(response.payload);
     expect(Array.isArray(users)).toBe(true);
     expect(users.length).toBe(2);
-    const roles = users.map((u: any) => u.role);
+    const roles = users.map((u: any) => u.group_role);
     expect(roles).toContain("owner");
     expect(roles).toContain("member");
   });
@@ -211,8 +211,8 @@ describe("Group Integration Flow", () => {
     expect(response.statusCode).toBe(200);
     const users = JSON.parse(response.payload);
     expect(users.length).toBe(1);
-    expect(users[0].user.id).toBe(user1.id);
-    expect(users[0].role).toBe("owner");
+    expect(users[0].id).toBe(user1.id);
+    expect(users[0].group_role).toBe("owner");
   });
 
   it.sequential("should delete the group", async () => {
