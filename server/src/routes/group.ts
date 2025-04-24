@@ -7,6 +7,7 @@ import {
   deleteGroup,
   getAllGroupsWithMemberCounts,
   getGroupById,
+  getGroupsWithMembersForUser,
   getUserGroupRole,
   getUsersInGroup,
   removeUserFromGroup,
@@ -317,6 +318,39 @@ const groupRoutes: FastifyPluginAsync = async (server) => {
     try {
       const users = await getUsersInGroup(server, id);
       return users;
+    } catch (error) {
+      reply.code(500);
+      console.error(error);
+      return { error: "Database error occurred." };
+    }
+  });
+
+  // GET /group/all/user/:id - Get all of a user's groups with their members
+  server.get("/all/user/:id", async (request, reply) => {
+    const parsed = idParamsSchema.safeParse(request.params);
+    if (!parsed.success) {
+      reply.code(400);
+      return { error: parsed.error.flatten() };
+    }
+    const { id: userId } = parsed.data;
+    if (isNaN(userId)) {
+      reply.code(400).send({ error: "Invalid user id." });
+      return;
+    }
+
+    const session = await verifyAccessToken(request, reply);
+    if (!session) {
+      console.log("Unauthorized GET /group/all/user/:user_id");
+      return;
+    }
+    if (session.user.id !== userId && session.user.role !== "admin") {
+      reply.code(403);
+      return { error: "Invalid credentials for action." };
+    }
+
+    try {
+      const groups = await getGroupsWithMembersForUser(server, userId);
+      return groups;
     } catch (error) {
       reply.code(500);
       console.error(error);
