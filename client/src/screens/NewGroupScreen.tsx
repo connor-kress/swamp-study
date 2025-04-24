@@ -366,7 +366,7 @@ export default function NewGroupScreen() {
               type="text"
               id="location"
               name="location"
-              placeholder="e.g. Martson Basement, Library West, etc."
+              placeholder="e.g. Marston Basement, Library West, etc."
               value={formData.location}
               onChange={handleInputChange}
               minLength={2}
