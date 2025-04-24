@@ -15,6 +15,7 @@ interface FormInputProps {
   max?: number;
   step?: number; // For time input
   required?: boolean;
+  disabled?: boolean;
   onBlur?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onInput?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   pattern?: string;
@@ -37,6 +38,7 @@ export default function FormInput({
   max,
   step,
   required = true, // default required
+  disabled = false,
   onBlur,
   onInput,
   pattern,
@@ -70,6 +72,7 @@ export default function FormInput({
       max={max}
       step={type === "time" ? "900" : step}
       required={required}
+      disabled={disabled}
       onBlur={onBlur}
       onInput={onInput}
       pattern={pattern}

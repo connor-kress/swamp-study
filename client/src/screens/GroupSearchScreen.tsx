@@ -1,12 +1,16 @@
 import { useMemo, useState } from "react";
-import { Link, NavigateFunction, useNavigate } from "react-router";
+import { NavigateFunction, useNavigate } from "react-router";
 import {
+  ArrowPathIcon,
   ChatBubbleLeftIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   ClockIcon,
   ExclamationCircleIcon,
+  FolderOpenIcon,
+  MagnifyingGlassIcon,
   MapPinIcon,
+  PlusIcon,
   UserGroupIcon,
   UserPlusIcon,
   XMarkIcon,
@@ -76,71 +80,135 @@ export async function attemptJoinGroup(
 export default function GroupSearchScreen() {
   useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const { courses } = useFetchCourses();
-  const { groups } = useFetchGroups();
+  const { courses, loading: coursesLoading, error: coursesError } =
+    useFetchCourses();
+  const { groups, loading: groupsLoading, error: groupsError } =
+    useFetchGroups();
+
+  const isLoading = coursesLoading || groupsLoading;
+  const error = coursesError || groupsError;
 
   // Filter and organize groups by courses based on search query
   const filteredAndGroupedData = useMemo(() => {
     if (!courses || !groups) return [];
 
-    // First filter courses based on search
     const filteredCourses = courses.filter(
       (course) =>
         course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         course.code.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Then create course-group pairs
-    return filteredCourses.map((course) => ({
+    const courseGroupPairs = filteredCourses.map((course) => ({
       course,
       groups: groups.filter((group) => group.course_id === course.id),
     }));
+
+    courseGroupPairs.sort((a, b) => {
+      return (b.groups.length > 0 ? 1 : 0) - (a.groups.length > 0 ? 1 : 0);
+    });
+
+    return courseGroupPairs;
   }, [courses, groups, searchQuery]);
 
   return (
     <>
       <NavBar />
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center mb-8">
-          <SwampStudy /> Join Group
-        </h1>
-
+        {/* Header with Title */}
         <div className="mb-8">
-          <FormInput
-            type="text"
-            id="search"
-            name="search"
-            placeholder="Search by class name or code (e.g. COP3502)"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <h1 className="text-3xl font-bold text-center mb-4">
+            Find a <SwampStudy /> Group
+          </h1>
         </div>
 
-        {groups && courses ? (
-          filteredAndGroupedData.length > 0 ? (
-            <div className="space-y-6">
-              {filteredAndGroupedData.map(({ course, groups }) => (
-                <CourseTab key={course.id} course={course} groups={groups} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-gray-600 dark:text-gray-400">
-              <p>No courses or groups found matching your search.</p>
-              <p className="mt-4">
-                Can't find a group?{" "}
-                <Link
-                  to="/new-group"
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  Create a new one
-                </Link>
-                .
-              </p>
-            </div>
-          )
-        ) : (
-          <div>Loading...</div>
-        )}
+        {/* Search and Action Buttons in one row */}
+        <div className="mb-8 flex flex-col md:flex-row gap-4">
+          <div className="flex-grow">
+            <FormInput
+              type="text"
+              id="search"
+              name="search"
+              placeholder="Search by class name or code (e.g. COP3502)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2 md:flex-shrink-0">
+            <Button
+              to="/new-class"
+              variant="secondary"
+              className="flex items-center gap-2 flex-1
+                         md:flex-initial justify-center"
+            >
+              <PlusIcon className="w-5 h-5" />
+              New Course
+            </Button>
+            <Button
+              to="/new-group"
+              variant="primary"
+              className="flex items-center gap-2 flex-1
+                         md:flex-initial justify-center"
+            >
+              <UserGroupIcon className="w-5 h-5" />
+              New Group
+            </Button>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin w-8 h-8 border-4 mx-auto mb-4
+                            border-blue-500 border-t-transparent rounded-full" />
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading courses and groups...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 dark:bg-red-900/30 rounded-lg
+                          p-6 text-center">
+            <ExclamationCircleIcon className="w-8 h-8 mx-auto mb-3
+                                              text-red-500 dark:text-red-400" />
+            <h3 className="text-red-700 dark:text-red-400 font-medium mb-2">
+              Error Loading Data
+            </h3>
+            <p className="text-red-600 dark:text-red-300 mb-4">{error}</p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="secondary"
+              className="inline-flex items-center gap-2"
+            >
+              <ArrowPathIcon className="w-5 h-5" />
+              Try Again
+            </Button>
+          </div>
+        ) : groups && courses ? (
+          <>
+            {/* Search Results */}
+            {filteredAndGroupedData.length > 0 ? (
+              <div className="space-y-6">
+                {filteredAndGroupedData.map(({ course, groups }) => (
+                  <CourseTab key={course.id} course={course} groups={groups} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center bg-gray-50 dark:bg-gray-800 rounded-lg
+                              p-8 border border-gray-200 dark:border-gray-700">
+                <FolderOpenIcon className="w-12 h-12 text-gray-400
+                                           dark:text-gray-500 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900
+                               dark:text-gray-100 mb-2">
+                  No Results Found
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  {searchQuery
+                    ? "No courses or groups match your search."
+                    : "No courses or groups available."}
+                </p>
+              </div>
+            )}
+          </>
+        ) : null}
       </div>
     </>
   );
