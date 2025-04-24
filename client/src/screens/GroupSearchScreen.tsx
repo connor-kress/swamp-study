@@ -8,7 +8,6 @@ import {
   ClockIcon,
   ExclamationCircleIcon,
   FolderOpenIcon,
-  MagnifyingGlassIcon,
   MapPinIcon,
   PlusIcon,
   UserGroupIcon,
